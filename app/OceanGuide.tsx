@@ -9,6 +9,8 @@ import {
   ShieldCheck, Sparkles, Star, Sun, Thermometer, Ticket, Trash2, Upload,
   User, Users, Waves, X, Zap,
 } from "lucide-react";
+import RealMapView from "./RealMapView";
+import AccountWidget from "./AccountWidget";
 
 type Tab = "beach" | "map" | "report" | "tour" | "eco";
 type Safety = "안전" | "주의" | "위험";
@@ -86,6 +88,7 @@ function BeachView({ openMap }: { openMap: () => void }) {
 function Metric({ icon: Icon, label, value, tone }: { icon: typeof Fish; label: string; value: string; tone: string }) { return <div className="metric"><div className={`metric-icon ${tone}`}><Icon size={17} /></div><span>{label}</span><b>{value}</b></div>; }
 
 function MapView() {
+  return <RealMapView />;
   const [layer, setLayer] = useState("해수욕장"); const [pin, setPin] = useState(1);
   const markers = [{ name: "다대포 수거함", type: "에코", x: 18, y: 75 }, ...beaches.map(b => ({ name: `${b.name}해수욕장`, type: "해수욕장", x: b.x, y: b.y })), { name: "민락 공영주차장", type: "주차장", x: 48, y: 48 }, { name: "송정 폐어망 제보", type: "제보", x: 78, y: 22 }];
   const visible = markers.filter(m => layer === "전체" || m.type === layer);
@@ -127,5 +130,13 @@ export default function OceanGuide() {
       }
     });
   }, [tab]);
+  useEffect(() => {
+    if (document.querySelector(".account-fab")) return;
+    const bar = document.createElement("div"); bar.className = "account-fab";
+    bar.innerHTML = '<button type="button">👤 로그인</button><button type="button">🏅 랭킹</button>';
+    bar.children[0].addEventListener("click", () => { const email = window.prompt("이메일을 입력하세요"); if (!email) return; const password = window.prompt("비밀번호를 입력하세요"); if (!password) return; localStorage.setItem("ocean-guide-login", JSON.stringify({ email })); window.alert(`${email} 계정으로 로그인되었습니다.`); });
+    bar.children[1].addEventListener("click", () => window.alert("마일리지 랭킹\n1위 해변지킴이 2,480P\n2위 파도수호자 2,210P\n3위 그린러너 1,980P"));
+    document.body.appendChild(bar); return () => bar.remove();
+  }, []);
   return <div className="app"><Header onProfile={() => setProfile(true)} />{tab === "beach" && <BeachView openMap={() => setTab("map")} />}{tab === "map" && <MapView />}{tab === "report" && <ReportView />}{tab === "tour" && <TourView />}{tab === "eco" && <EcoView />}<BottomNav tab={tab} setTab={setTab} /><footer><Logo /><p>부산의 안전한 바다와 지속 가능한 여행을 연결합니다.</p><span>데이터는 데모용으로 제공됩니다 · © 2026 Ocean Guide Busan</span></footer>{profile && <Modal onClose={() => setProfile(false)} title="내 프로필"><div className="profile-modal"><div className="big-avatar">H<span>LV.8</span></div><h3>김해린</h3><p>파도 수호자 · 2,480P</p><button onClick={() => { setProfile(false); setTab("eco"); }}>마이페이지로 이동 <ChevronRight size={16} /></button></div></Modal>}</div>;
 }
