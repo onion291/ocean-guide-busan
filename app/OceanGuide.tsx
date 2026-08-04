@@ -133,7 +133,15 @@ function OceanGuideBody() {
       }
     });
     const profileName = document.querySelector<HTMLElement>(".profile-modal h3");
-    if (profileName && !localStorage.getItem("ocean-guide-user")) profileName.textContent = "로그인이 필요합니다";
+    const profileRaw = localStorage.getItem("ocean-guide-user");
+    const profileUser = profileRaw ? JSON.parse(profileRaw) as { name?: string; points?: number; email?: string } : null;
+    if (profileName) profileName.textContent = profileUser?.name || "로그인이 필요합니다";
+    const profileDescription = document.querySelector<HTMLElement>(".profile-modal p");
+    if (profileDescription) profileDescription.textContent = profileUser ? `${profileUser.email || "로그인 계정"} · ${(profileUser.points || 0).toLocaleString()}P` : "로그인 후 프로필을 확인할 수 있습니다.";
+    const profileMove = document.querySelector<HTMLElement>(".profile-modal button");
+    if (profileMove) profileMove.style.display = "none";
+    const profileAvatar = document.querySelector<HTMLElement>(".profile-modal .big-avatar");
+    if (profileAvatar && profileUser?.name) profileAvatar.childNodes[0].textContent = profileUser.name.charAt(0).toUpperCase();
   }, [tab, profile]);
   useEffect(() => {
     if (document.querySelector(".account-fab")) return;
