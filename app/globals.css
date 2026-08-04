@@ -31,3 +31,4 @@
   .challenge-grid{grid-template-columns:1fr;max-width:860px}
   .parking-tip{min-height:220px}
 }
+ .account-fab .logout-btn{color:#0b7fba}.account-fab .withdraw-btn{color:#d9485f}.login-required{min-height:300px;display:grid;place-items:center;text-align:center}.login-required .empty-state{padding:36px 18px}.login-required h2{margin:10px 0 6px;font-size:24px;color:#173b51}.login-required p{color:#718594;font-size:13px}
