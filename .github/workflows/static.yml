@@ -43,6 +43,7 @@ jobs:
             if [ "$folder" != "dist/client" ]; then cp -R "$folder"/. dist/client/; fi
           fi
           sed -i -E 's#(href|src)="/#\1="/ocean-guide-busan/#g' dist/client/index.html
+          find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i 's#/assets/#/ocean-guide-busan/assets/#g' {} +
           test -f dist/client/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
