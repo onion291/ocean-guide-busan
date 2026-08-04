@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Car, Coffee, MapPin, Navigation, Waves, X } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
-type Place = { name: string; type: string; lat: number; lon: number; detail: string };
+type Place = { name: string; type: string; lat: number; lon: number; detail: string; popularity?: string; total?: number; left?: number };
 const places: Place[] = [
   { name: "해운대해수욕장", type: "해수욕장", lat: 35.1587, lon: 129.1604, detail: "실시간 안전 상태와 수온을 확인하세요." },
   { name: "광안리해수욕장", type: "해수욕장", lat: 35.1532, lon: 129.1187, detail: "광안대교 야경과 해변 산책 명소입니다." },
@@ -14,6 +14,12 @@ const places: Place[] = [
   { name: "해운대 공영주차장", type: "주차장", lat: 35.1608, lon: 129.1632, detail: "해운대 해변 인근 공영주차장입니다." },
   { name: "광안리 민락주차장", type: "주차장", lat: 35.1539, lon: 129.1232, detail: "민락수변공원과 가까운 주차장입니다." },
   { name: "에코카페 파도", type: "에코스팟", lat: 35.1574, lon: 129.1184, detail: "다회용컵과 플로깅 키트를 이용할 수 있어요." },
+  { name: "오륙도 스카이워크", type: "관광명소", lat: 35.1007, lon: 129.1233, detail: "바다 위 유리 전망대와 해안 산책로입니다.", popularity: "오늘 인기 1위" },
+  { name: "태종대 유원지", type: "관광명소", lat: 35.0516, lon: 129.0877, detail: "순환열차와 해안 절경을 즐기는 부산 명소입니다.", popularity: "주말 추천" },
+  { name: "송도 해상케이블카", type: "관광명소", lat: 35.0762, lon: 129.0188, detail: "송도 바다를 가로지르는 인기 케이블카입니다.", popularity: "대기 18분" },
+  { name: "송정 공영주차장", type: "주차장", lat: 35.1802, lon: 129.2018, detail: "송정해수욕장 도보 4분 거리입니다.", total: 180, left: 36 },
+  { name: "민락수변공원 주차장", type: "주차장", lat: 35.1535, lon: 129.1262, detail: "수변공원과 회센터 인근 주차장입니다.", total: 260, left: 18 },
+  { name: "다대포 해변공원 주차장", type: "주차장", lat: 35.0464, lon: 128.9661, detail: "다대포 일몰 명소와 가까운 넓은 주차장입니다.", total: 320, left: 142 },
 ];
 
 export default function RealMapView() {
@@ -22,6 +28,8 @@ export default function RealMapView() {
   const markersRef = useRef<any[]>([]);
   const [selected, setSelected] = useState<Place | null>(null);
   const [filter, setFilter] = useState("전체");
+  const [, setLiveTick] = useState(0);
+  useEffect(() => { const timer = window.setInterval(() => setLiveTick((v) => v + 1), 10000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -36,7 +44,7 @@ export default function RealMapView() {
     return () => { mounted = false; if (leafletRef.current) { leafletRef.current.map.remove(); leafletRef.current = null; } };
   }, []);
 
-  useEffect(() => { if (leafletRef.current) renderMarkers(leafletRef.current.L, leafletRef.current.map, filter, setSelected, markersRef); }, [filter]);
+  useEffect(() => { if (leafletRef.current) renderMarkers(leafletRef.current.L, leafletRef.current.map, filter, setSelected, markersRef); }, [filter, liveTick]);
   return <main className="content"><section className="section compact"><div className="page-title"><span>BUSAN GEO MAP</span><h1>부산 해양 위치 지도</h1><p>지도를 움직이거나 확대해도 위치 마커가 실제 지리 좌표에 맞춰 함께 이동합니다.</p></div><div className="map-toolbar"><div className="filters scroll">{["전체", "해수욕장", "관광명소", "주차장", "에코스팟"].map((f) => <button key={f} className={filter === f ? "active" : ""} onClick={() => setFilter(f)}>{f}</button>)}</div><a className="locate" href="https://www.openstreetmap.org/#map=13/35.155/129.14" target="_blank" rel="noreferrer"><Navigation size={17} /> 큰 지도</a></div><div className="leaflet-map-shell" ref={mapRef} />{selected && <div className="geo-popup"><button onClick={() => setSelected(null)}><X size={16} /></button><small>{selected.type} · 부산 좌표</small><b>{selected.name}</b><span>{selected.detail}</span><em>위도 {selected.lat} · 경도 {selected.lon}</em></div>}<p className="map-note">지도 데이터 © OpenStreetMap contributors · 마커를 클릭하면 상세정보가 표시됩니다.</p></section></main>;
 }
 
@@ -46,7 +54,9 @@ function renderMarkers(L: any, map: any, filter: string, setSelected: (p: Place)
   places.filter((p) => filter === "전체" || p.type === filter).forEach((place) => {
     const color = place.type === "해수욕장" ? "#0ea5e9" : place.type === "관광명소" ? "#8b5cf6" : place.type === "주차장" ? "#334155" : "#16a34a";
     const icon = L.divIcon({ className: "custom-leaflet-marker", html: `<span style="background:${color}">${place.type === "해수욕장" ? "〰" : place.type === "주차장" ? "P" : place.type === "에코스팟" ? "♻" : "★"}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] });
-    const popup = `<div class="map-detail-popup"><small>${place.type} · 부산 좌표</small><b>${place.name}</b><span>${place.detail}</span><em>위도 ${place.lat} · 경도 ${place.lon}</em></div>`;
+    const liveLeft = place.left == null ? undefined : Math.max(0, place.left + Math.round(Math.sin(Date.now() / 30000 + place.lat) * 4));
+    const parkingInfo = liveLeft == null ? "" : `<strong class="parking-live">남은 자리 ${liveLeft} / ${place.total}면 · ${liveLeft / (place.total || 1) < .15 ? "혼잡" : "여유"}</strong>`;
+    const popup = `<div class="map-detail-popup"><small>${place.type} · 부산 좌표</small><b>${place.name}</b><span>${place.detail}</span>${place.popularity ? `<em class="popular-live">${place.popularity}</em>` : ""}${parkingInfo}<em>위도 ${place.lat} · 경도 ${place.lon}</em></div>`;
     const marker = L.marker([place.lat, place.lon], { icon }).bindPopup(popup, { closeButton: true, offset: [0, -18], className: "ocean-leaflet-popup" }).addTo(map).on("click", () => { setSelected(place); marker.openPopup(); });
     markersRef.current.push(marker);
   });
