@@ -120,7 +120,7 @@ function EcoView() {
 
 function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={onClose}><div className="modal" onMouseDown={e => e.stopPropagation()}><div className="modal-head"><h3>{title}</h3><button onClick={onClose}><X size={20} /></button></div>{children}</div></div>; }
 
-export default function OceanGuide() {
+function OceanGuideBody() {
   const [tab, setTab] = useState<Tab>("beach"); const [profile, setProfile] = useState(false);
   useEffect(() => {
     const labels = document.querySelectorAll<HTMLElement>("button, h1, h2, h3, p, span, small, b");
@@ -139,4 +139,8 @@ export default function OceanGuide() {
     document.body.appendChild(bar); return () => bar.remove();
   }, []);
   return <div className="app"><Header onProfile={() => setProfile(true)} />{tab === "beach" && <BeachView openMap={() => setTab("map")} />}{tab === "map" && <MapView />}{tab === "report" && <ReportView />}{tab === "tour" && <TourView />}{tab === "eco" && <EcoView />}<BottomNav tab={tab} setTab={setTab} /><footer><Logo /><p>부산의 안전한 바다와 지속 가능한 여행을 연결합니다.</p><span>데이터는 데모용으로 제공됩니다 · © 2026 Ocean Guide Busan</span></footer>{profile && <Modal onClose={() => setProfile(false)} title="내 프로필"><div className="profile-modal"><div className="big-avatar">H<span>LV.8</span></div><h3>김해린</h3><p>파도 수호자 · 2,480P</p><button onClick={() => { setProfile(false); setTab("eco"); }}>마이페이지로 이동 <ChevronRight size={16} /></button></div></Modal>}</div>;
+}
+
+export default function OceanGuide() {
+  return <><AccountWidget /><OceanGuideBody /></>;
 }
