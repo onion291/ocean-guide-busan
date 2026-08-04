@@ -1,0 +1,123 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle, ArrowLeft, Award, BadgeCheck, BarChart3, BatteryCharging,
+  Bell, Bike, Camera, Car, Check, ChevronDown, ChevronRight, CircleParking,
+  Coffee, Compass, Fish, Footprints, Heart, Home, Info, Leaf, LocateFixed,
+  Map as MapIcon, MapPin, Menu, Navigation, ParkingCircle, Recycle, Search,
+  ShieldCheck, Sparkles, Star, Sun, Thermometer, Ticket, Trash2, Upload,
+  User, Users, Waves, X, Zap,
+} from "lucide-react";
+
+type Tab = "beach" | "map" | "report" | "tour" | "eco";
+type Safety = "안전" | "주의" | "위험";
+
+const beaches = [
+  { name: "해운대", area: "해운대구", safety: "주의" as Safety, desc: "파고가 다소 높아요", temp: 24.2, wave: 1.2, uv: 7, crowd: 82, jelly: "낮음", rip: "주의", trash: "양호", x: 64, y: 33 },
+  { name: "광안리", area: "수영구", safety: "안전" as Safety, desc: "물놀이하기 좋은 상태예요", temp: 23.8, wave: 0.5, uv: 6, crowd: 68, jelly: "낮음", rip: "낮음", trash: "양호", x: 53, y: 49 },
+  { name: "송정", area: "해운대구", safety: "주의" as Safety, desc: "서핑 구역을 확인하세요", temp: 23.5, wave: 1.4, uv: 7, crowd: 57, jelly: "보통", rip: "주의", trash: "보통", x: 75, y: 24 },
+  { name: "다대포", area: "사하구", safety: "안전" as Safety, desc: "잔잔하고 쾌적한 상태예요", temp: 24.6, wave: 0.3, uv: 6, crowd: 41, jelly: "낮음", rip: "낮음", trash: "양호", x: 20, y: 77 },
+  { name: "송도", area: "서구", safety: "안전" as Safety, desc: "전 구역 입수 가능해요", temp: 24.1, wave: 0.4, uv: 6, crowd: 49, jelly: "낮음", rip: "낮음", trash: "양호", x: 34, y: 66 },
+  { name: "일광", area: "기장군", safety: "위험" as Safety, desc: "강풍으로 입수를 삼가세요", temp: 22.9, wave: 2.1, uv: 5, crowd: 19, jelly: "보통", rip: "높음", trash: "보통", x: 86, y: 13 },
+  { name: "임랑", area: "기장군", safety: "주의" as Safety, desc: "해파리 출몰에 유의하세요", temp: 23.1, wave: 0.9, uv: 6, crowd: 28, jelly: "높음", rip: "낮음", trash: "보통", x: 92, y: 7 },
+];
+
+const reportsSeed = [
+  { id: "B-24081", type: "폐어망", place: "송정해수욕장 동쪽", time: "12분 전", status: "확인 중" },
+  { id: "B-24080", type: "플라스틱", place: "광안리 민락수변공원", time: "34분 전", status: "접수 완료" },
+  { id: "B-24076", type: "스티로폼", place: "다대포 몰운대 입구", time: "2시간 전", status: "처리 완료" },
+];
+
+const spots = [
+  { cat: "맛집", icon: "🍲", name: "해운대 원조 할매국밥", area: "해운대 · 도보 4분", rating: 4.8, tag: "부산 로컬" },
+  { cat: "카페", icon: "☕", name: "웨이브온 커피", area: "기장 · 바다 전망", rating: 4.7, tag: "다회용컵" },
+  { cat: "명소", icon: "🌉", name: "청사포 다릿돌전망대", area: "청사포 · 무료", rating: 4.6, tag: "노을 명소" },
+  { cat: "축제", icon: "🎆", name: "광안리 M 드론 라이트쇼", area: "매주 토요일 20:00", rating: 4.9, tag: "이번 주" },
+];
+
+const parking = [
+  { name: "해운대광장 공영주차장", place: "해운대까지 3분", left: 42, total: 120, fee: "10분 500원", ev: true },
+  { name: "민락매립지 공영주차장", place: "광안리까지 5분", left: 8, total: 94, fee: "10분 300원", ev: true },
+  { name: "송정 중앙 공영주차장", place: "송정까지 2분", left: 67, total: 103, fee: "10분 300원", ev: false },
+];
+
+const challenges = [
+  { emoji: "🌊", title: "7일 연속 비치 플로깅", desc: "하루 20분, 부산의 바다를 가볍게", progress: 4, total: 7, point: 700, color: "blue" },
+  { emoji: "🥤", title: "일회용컵 없는 주말", desc: "에코카페 3곳에서 다회용컵 사용", progress: 1, total: 3, point: 350, color: "green" },
+  { emoji: "🧤", title: "광안리 합동 플로깅", desc: "8월 9일 토요일 · 오전 9시", progress: 78, total: 100, point: 500, color: "orange" },
+];
+
+const statusStyle: Record<Safety, string> = { 안전: "safe", 주의: "caution", 위험: "danger" };
+
+function Logo() {
+  return <div className="brand"><div className="brand-mark"><Waves size={22} strokeWidth={2.6} /></div><div><b>바다길잡이</b><span>OCEAN GUIDE · BUSAN</span></div></div>;
+}
+
+function Header({ onProfile }: { onProfile: () => void }) {
+  return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>해린</span><div className="avatar">H</div></button></div></div></header>;
+}
+
+const navItems: { id: Tab; label: string; icon: typeof Home }[] = [
+  { id: "beach", label: "안전·해변", icon: ShieldCheck }, { id: "map", label: "지도", icon: MapIcon },
+  { id: "report", label: "AI 제보", icon: Camera }, { id: "tour", label: "관광·주차", icon: Compass },
+  { id: "eco", label: "에코·마이", icon: Leaf },
+];
+
+function BottomNav({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  return <nav className="bottom-nav" aria-label="메인 메뉴"><div className="nav-inner">{navItems.map(({ id, label, icon: Icon }) => <button key={id} className={tab === id ? "active" : ""} onClick={() => { setTab(id); window.scrollTo({ top: 0, behavior: "smooth" }); }}><span className="nav-icon"><Icon size={21} strokeWidth={tab === id ? 2.7 : 2} />{id === "report" && <i />}</span><small>{label}</small></button>)}</div></nav>;
+}
+
+function PageTitle({ eyebrow, title, desc }: { eyebrow: string; title: string; desc: string }) {
+  return <div className="page-title"><span>{eyebrow}</span><h1>{title}</h1><p>{desc}</p></div>;
+}
+
+function BeachView({ openMap }: { openMap: () => void }) {
+  const [query, setQuery] = useState(""); const [filter, setFilter] = useState<"전체" | Safety>("전체"); const [selected, setSelected] = useState(0);
+  const list = useMemo(() => beaches.filter(b => (filter === "전체" || b.safety === filter) && b.name.includes(query)), [filter, query]);
+  const beach = beaches[selected];
+  return <main className="content"><section className="hero"><div className="hero-copy"><div className="live-pill"><i /> 실시간 해양 안전 정보</div><h1>오늘, 어느 바다로<br />떠나볼까요?</h1><p>부산 7개 해수욕장의 안전 상태를 한눈에 확인하세요.</p><div className="hero-stats"><div><b>5</b><span>입수 가능</span></div><div><b>2</b><span>주의 필요</span></div><div><b>24.0°</b><span>평균 수온</span></div></div></div><div className="wave-art"><div className="sun-orb" /><Waves size={190} /><div className="float-card"><ShieldCheck size={18} /><span><b>현재 안전한 해변</b><strong>5곳</strong></span></div></div></section>
+  <section className="section safety-section"><div className="section-head"><div><span className="kicker">BEACH STATUS</span><h2>해수욕장 실시간 현황</h2></div><button className="text-btn" onClick={openMap}>지도로 보기 <ChevronRight size={16} /></button></div>
+  <div className="search-row"><label className="search-box"><Search size={18} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="해수욕장을 검색해보세요" /><kbd>⌘ K</kbd></label><div className="filters">{(["전체", "안전", "주의", "위험"] as const).map(f => <button key={f} className={filter === f ? "active" : ""} onClick={() => setFilter(f)}>{f !== "전체" && <i className={statusStyle[f]} />}{f}</button>)}</div></div>
+  <div className="beach-layout"><div className="beach-list">{list.map((b) => { const idx = beaches.indexOf(b); return <button key={b.name} className={`beach-card ${selected === idx ? "selected" : ""}`} onClick={() => setSelected(idx)}><div className="beach-top"><div className={`status-symbol ${statusStyle[b.safety]}`}><Waves size={23} /></div><div><h3>{b.name}해수욕장</h3><p>{b.area} · 방재센터 기준</p></div><span className={`status-chip ${statusStyle[b.safety]}`}><i /> {b.safety}</span></div><p className="status-message">{b.desc}</p><div className="mini-metrics"><span><Thermometer size={15} /> {b.temp}℃</span><span><Waves size={15} /> {b.wave}m</span><span><Users size={15} /> {b.crowd}%</span></div><ChevronRight className="card-arrow" size={18} /></button>})}{!list.length && <div className="empty"><Search size={28} /><b>검색 결과가 없어요</b><span>다른 해변 이름을 입력해보세요.</span></div>}</div>
+  <aside className="detail-panel"><div className="detail-visual"><div className="detail-overlay"><span>현재 선택</span><h3>{beach.name}해수욕장</h3><button onClick={openMap}><Navigation size={15} /> 위치 보기</button></div></div><div className="detail-body"><div className="detail-title"><div><span>오늘의 안전 지수</span><h3>{beach.safety === "안전" ? "쾌적해요" : beach.safety === "주의" ? "주의가 필요해요" : "입수를 삼가세요"}</h3></div><div className={`score ${statusStyle[beach.safety]}`}>{beach.safety === "안전" ? 92 : beach.safety === "주의" ? 68 : 31}<small>/100</small></div></div><div className="metric-grid"><Metric icon={Fish} label="해파리" value={beach.jelly} tone={beach.jelly === "높음" ? "red" : "green"} /><Metric icon={Waves} label="이안류" value={beach.rip} tone={beach.rip === "높음" ? "red" : beach.rip === "주의" ? "orange" : "green"} /><Metric icon={Trash2} label="부유물" value={beach.trash} tone="green" /><Metric icon={Sun} label="UV 지수" value={`${beach.uv} · 높음`} tone="orange" /></div><div className="advice"><Info size={18} /><p><b>안전 요원의 안내를 따라주세요.</b><br />수심이 깊어지는 구간과 지정 수영 구역을 확인하세요.</p></div></div></aside></div></section></main>;
+}
+
+function Metric({ icon: Icon, label, value, tone }: { icon: typeof Fish; label: string; value: string; tone: string }) { return <div className="metric"><div className={`metric-icon ${tone}`}><Icon size={17} /></div><span>{label}</span><b>{value}</b></div>; }
+
+function MapView() {
+  const [layer, setLayer] = useState("해수욕장"); const [pin, setPin] = useState(1);
+  const markers = [{ name: "다대포 수거함", type: "에코", x: 18, y: 75 }, ...beaches.map(b => ({ name: `${b.name}해수욕장`, type: "해수욕장", x: b.x, y: b.y })), { name: "민락 공영주차장", type: "주차장", x: 48, y: 48 }, { name: "송정 폐어망 제보", type: "제보", x: 78, y: 22 }];
+  const visible = markers.filter(m => layer === "전체" || m.type === layer);
+  const chosen = visible[pin % Math.max(visible.length, 1)] || visible[0];
+  return <main className="content"><section className="section compact"><PageTitle eyebrow="MARINE MAP" title="부산 바다를 한눈에" desc="안전 정보부터 에코 스팟, 주차장까지 지도에서 찾아보세요." /><div className="map-toolbar"><div className="filters scroll">{["전체", "해수욕장", "주차장", "에코", "제보"].map((l, i) => <button key={l} className={layer === l ? "active" : ""} onClick={() => { setLayer(l); setPin(i); }}><i className={`layer-dot l${i}`} />{l}</button>)}</div><button className="locate"><LocateFixed size={17} /> 내 위치</button></div><div className="map-shell"><div className="map-grid" /><div className="coast coast-one" /><div className="coast coast-two" /><span className="water-label">BUSAN COAST</span>{visible.map((m, i) => <button aria-label={m.name} key={m.name} onClick={() => setPin(i)} style={{ left: `${m.x}%`, top: `${m.y}%` }} className={`map-pin ${m.type} ${chosen?.name === m.name ? "active" : ""}`}><span>{m.type === "주차장" ? "P" : m.type === "에코" ? "♻" : m.type === "제보" ? "!" : "●"}</span></button>)}<div className="map-zoom"><button>+</button><button>−</button></div>{chosen && <div className="map-popup"><div className="popup-thumb"><Waves size={28} /></div><div><small>{chosen.type} · 실시간</small><b>{chosen.name}</b><span>{chosen.type === "해수욕장" ? "현재 안전 상태를 확인하세요" : "상세 위치와 운영 정보를 확인하세요"}</span></div><button><ChevronRight size={19} /></button></div>}<div className="map-legend"><span><i className="safe" /> 안전</span><span><i className="caution" /> 주의</span><span><i className="danger" /> 위험</span></div></div></section></main>;
+}
+
+function ReportView() {
+  const inputRef = useRef<HTMLInputElement>(null); const [sample, setSample] = useState(""); const [analyzing, setAnalyzing] = useState(false); const [result, setResult] = useState(false); const [reports, setReports] = useState(reportsSeed); const [place, setPlace] = useState("광안리해수욕장"); const [desc, setDesc] = useState(""); const [name, setName] = useState("김해린"); const [toast, setToast] = useState("");
+  const analyze = (type: string) => { setSample(type); setResult(false); setAnalyzing(true); setTimeout(() => { setAnalyzing(false); setResult(true); }, 1450); };
+  const submit = () => { if (!result) { setToast("먼저 사진을 분석해주세요."); return; } setReports([{ id: `B-${24082 + reports.length}`, type: sample || "플라스틱", place, time: "방금 전", status: "접수 완료" }, ...reports]); setToast("제보가 안전하게 접수되었어요! +100P"); setDesc(""); };
+  useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(""), 2800); return () => clearTimeout(id); }, [toast]);
+  return <main className="content"><section className="section compact"><PageTitle eyebrow="AI OCEAN KEEPER" title="사진 한 장으로 바다를 깨끗하게" desc="해양 쓰레기를 촬영하면 AI가 종류와 올바른 처리 방법을 알려드려요." /><div className="report-layout"><div><div className={`upload-card ${result ? "has-result" : ""}`} onClick={() => !analyzing && inputRef.current?.click()}>{analyzing ? <div className="analyzing"><div className="scan-object">♻<div className="scan-line" /></div><b>AI가 이미지를 분석하고 있어요</b><span>해양 폐기물 특징을 찾는 중...</span><div className="progress"><i /></div></div> : result ? <div className="result-photo"><div className="result-object">{sample === "폐어망" ? "🕸️" : sample === "스티로폼" ? "📦" : "🥤"}</div><span className="detect-box">{sample || "플라스틱"} 96.4%</span><button onClick={(e) => { e.stopPropagation(); setResult(false); setSample(""); }}><X size={17} /></button></div> : <><div className="upload-icon"><Camera size={28} /></div><h3>쓰레기 사진을 올려주세요</h3><p>사진을 끌어놓거나 눌러서 선택하세요</p><span>JPG, PNG · 최대 10MB</span><button className="primary"><Upload size={17} /> 사진 선택</button></>}<input ref={inputRef} type="file" accept="image/*" hidden onChange={e => e.target.files?.[0] && analyze("플라스틱")} /></div><div className="sample-row"><span>빠른 테스트</span>{[["🥤", "플라스틱"], ["🕸️", "폐어망"], ["📦", "스티로폼"]].map(s => <button key={s[1]} onClick={() => analyze(s[1])}><i>{s[0]}</i>{s[1]}</button>)}</div>{result && <div className="ai-result"><div className="ai-head"><span><Sparkles size={17} /> AI 분석 완료</span><b>신뢰도 96.4%</b></div><div className="detected"><div>♻️</div><span><small>감지된 쓰레기</small><b>{sample || "플라스틱 음료 용기"}</b><em>재활용 가능</em></span></div><div className="guide-box"><Recycle size={20} /><p><b>이렇게 분리배출 해주세요</b><br />내용물을 비우고 이물질을 씻은 뒤, 라벨과 뚜껑을 분리해 투명 페트병 수거함에 넣어주세요.</p></div><div className="impact"><span>환경 영향도</span><div><i /><i /><i /><i className="off" /></div><b>높음</b></div></div>}</div>
+  <div className="report-form"><div className="form-head"><div className="form-icon"><MapPin size={22} /></div><div><h3>제보 정보 등록</h3><p>정확한 위치는 빠른 수거에 큰 도움이 돼요.</p></div></div><label>발견 위치<div className="select-wrap"><MapPin size={17} /><select value={place} onChange={e => setPlace(e.target.value)}>{beaches.map(b => <option key={b.name}>{b.name}해수욕장</option>)}</select><ChevronDown size={17} /></div></label><label>상세 설명 <span>(선택)</span><textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="쓰레기의 양이나 주변 특징을 알려주세요." /></label><label>제보자 이름<input value={name} onChange={e => setName(e.target.value)} /></label><div className="privacy"><ShieldCheck size={18} /><span>개인정보는 제보 처리 목적으로만 사용돼요.</span></div><button className="submit-btn" onClick={submit}><Camera size={18} /> 해양 쓰레기 제보하기 <span>+100P</span></button></div></div>
+  <div className="recent"><div className="section-head"><div><span className="kicker">LIVE REPORTS</span><h2>실시간 제보 현황</h2></div><span className="updated"><i /> 방금 업데이트</span></div><div className="report-list">{reports.slice(0, 4).map(r => <div className="report-item" key={r.id}><div className="report-thumb">{r.type === "폐어망" ? "🕸️" : r.type === "스티로폼" ? "📦" : "🥤"}</div><div className="report-info"><small>{r.id} · {r.time}</small><b>{r.type}</b><span><MapPin size={13} /> {r.place}</span></div><span className={`report-status ${r.status.replace(" ", "")}`}>{r.status}</span></div>)}</div></div></section>{toast && <div className="toast"><Check size={18} />{toast}</div>}</main>;
+}
+
+function TourView() {
+  const [cat, setCat] = useState("전체"); const [saved, setSaved] = useState<string[]>([]); const filtered = cat === "전체" ? spots : spots.filter(s => s.cat === cat);
+  return <main className="content"><section className="tour-hero"><div><span>BUSAN BLUE TRIP</span><h1>바다 곁에서 만나는<br />부산의 오늘</h1><p>로컬 명소부터 빈 주차자리까지, 더 가볍고 편안한 여행을 시작하세요.</p></div><div className="tour-badge"><Compass size={31} /><b>7 Beaches</b><span>CURATED FOR YOU</span></div></section><section className="section"><div className="section-head"><div><span className="kicker">EXPLORE BUSAN</span><h2>바다 주변 둘러보기</h2></div></div><div className="category-tabs">{["전체", "맛집", "카페", "명소", "축제"].map(c => <button key={c} className={cat === c ? "active" : ""} onClick={() => setCat(c)}>{c}</button>)}</div><div className="spot-grid">{filtered.map((s, i) => <article className={`spot-card spot-${i}`} key={s.name}><div className="spot-image"><span>{s.icon}</span><em>{s.tag}</em><button onClick={() => setSaved(v => v.includes(s.name) ? v.filter(x => x !== s.name) : [...v, s.name])}><Heart size={18} fill={saved.includes(s.name) ? "currentColor" : "none"} /></button></div><div className="spot-body"><span>{s.cat}</span><h3>{s.name}</h3><p><MapPin size={14} /> {s.area}</p><b><Star size={14} fill="currentColor" /> {s.rating}</b></div></article>)}</div>
+  <div className="parking-head"><div><span className="kicker">LIVE PARKING</span><h2>주변 실시간 주차</h2></div><button className="text-btn">전체 지도 <ChevronRight size={16} /></button></div><div className="parking-layout"><div className="parking-list">{parking.map(p => { const rate = p.left / p.total; return <article className="parking-card" key={p.name}><div className={`parking-icon ${rate < .15 ? "busy" : ""}`}><ParkingCircle size={25} /></div><div className="parking-main"><span><b>{p.name}</b>{p.ev && <em><Zap size={11} fill="currentColor" /> EV</em>}</span><small><MapPin size={12} /> {p.place}</small><div className="parking-bar"><i style={{ width: `${rate * 100}%` }} /></div><p><strong>{p.left}면</strong> / {p.total}면 남음 <span>· {p.fee}</span></p></div><button aria-label="길찾기"><Navigation size={17} /></button></article>})}</div><aside className="parking-tip"><div><Car size={31} /></div><span>SMART PARKING</span><h3>도착 전에<br />주차 자리를 확인하세요</h3><p>주차 정보는 5분 간격으로 업데이트돼요.</p><button><Navigation size={17} /> 가까운 주차장 찾기</button></aside></div></section></main>;
+}
+
+function EcoView() {
+  const [joined, setJoined] = useState<string[]>([challenges[0].title]); const [modal, setModal] = useState(false);
+  return <main className="content"><section className="profile-hero"><div className="profile-main"><div className="big-avatar">H<span>LV.8</span></div><div><small>오늘도 바다를 지키는</small><h1>김해린 님</h1><p><Award size={16} /> 파도 수호자 · 상위 12%</p></div></div><div className="point-card"><div><Leaf size={21} fill="currentColor" /><span>나의 에코 마일리지</span></div><strong>2,480<small>P</small></strong><button onClick={() => setModal(true)}>포인트 내역 <ChevronRight size={15} /></button></div><div className="profile-stats"><div><b>14</b><span>플로깅 참여</span></div><div><b>8.6kg</b><span>쓰레기 수거</span></div><div><b>2,180</b><span>탄소 절감(g)</span></div></div></section><section className="section"><div className="section-head"><div><span className="kicker">PLOGGING CHALLENGE</span><h2>이번 주 함께할 도전</h2></div><span className="challenge-count">3개의 챌린지</span></div><div className="challenge-grid">{challenges.map(c => <article className={`challenge ${c.color}`} key={c.title}><div className="challenge-icon">{c.emoji}</div><div className="challenge-copy"><span>{c.progress === c.total ? "완료" : "진행 중"}</span><h3>{c.title}</h3><p>{c.desc}</p><div className="challenge-progress"><i style={{ width: `${c.progress / c.total * 100}%` }} /></div><small><b>{c.progress}</b> / {c.total} {c.total === 100 ? "명 참여" : "회"}</small></div><div className="challenge-action"><b>+{c.point}P</b><button className={joined.includes(c.title) ? "joined" : ""} onClick={() => setJoined(v => v.includes(c.title) ? v : [...v, c.title])}>{joined.includes(c.title) ? <><Check size={15} /> 참여 중</> : "참여하기"}</button></div></article>)}</div>
+  <div className="eco-bottom"><div className="badges"><div className="section-head"><div><span className="kicker">MY BADGES</span><h2>나의 에코 배지</h2></div><button className="text-btn">전체 보기 <ChevronRight size={16} /></button></div><div className="badge-row">{[["🌊", "첫 플로깅"], ["🐋", "바다 친구"], ["♻️", "분리배출 달인"], ["🌱", "그린 루키"], ["?", "다음 배지"]].map((b, i) => <div className={i === 4 ? "locked" : ""} key={b[1]}><span>{b[0]}</span><small>{b[1]}</small></div>)}</div></div><div className="eco-map-card"><div><span>GREEN SPOT MAP</span><h3>가까운 에코 스팟</h3><p>플로깅 스테이션 · 수거함 · 에코카페</p><button><MapPin size={16} /> 지도에서 12곳 보기</button></div><div className="eco-map-art"><i className="route" /><b className="eco-pin p1">♻</b><b className="eco-pin p2">☕</b><b className="eco-pin p3">●</b></div></div></div></section>{modal && <Modal onClose={() => setModal(false)} title="에코 포인트 내역"><div className="point-history">{[["AI 해양 쓰레기 제보", "+100P", "오늘"], ["7일 플로깅 4일차", "+80P", "어제"], ["에코카페 다회용컵", "+50P", "8월 1일"]].map(x => <div key={x[0]}><span><i><Leaf size={16} /></i><b>{x[0]}</b><small>{x[2]}</small></span><strong>{x[1]}</strong></div>)}</div></Modal>}</main>;
+}
+
+function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={onClose}><div className="modal" onMouseDown={e => e.stopPropagation()}><div className="modal-head"><h3>{title}</h3><button onClick={onClose}><X size={20} /></button></div>{children}</div></div>; }
+
+export default function OceanGuide() {
+  const [tab, setTab] = useState<Tab>("beach"); const [profile, setProfile] = useState(false);
+  return <div className="app"><Header onProfile={() => setProfile(true)} />{tab === "beach" && <BeachView openMap={() => setTab("map")} />}{tab === "map" && <MapView />}{tab === "report" && <ReportView />}{tab === "tour" && <TourView />}{tab === "eco" && <EcoView />}<BottomNav tab={tab} setTab={setTab} /><footer><Logo /><p>부산의 안전한 바다와 지속 가능한 여행을 연결합니다.</p><span>데이터는 데모용으로 제공됩니다 · © 2026 Ocean Guide Busan</span></footer>{profile && <Modal onClose={() => setProfile(false)} title="내 프로필"><div className="profile-modal"><div className="big-avatar">H<span>LV.8</span></div><h3>김해린</h3><p>파도 수호자 · 2,480P</p><button onClick={() => { setProfile(false); setTab("eco"); }}>마이페이지로 이동 <ChevronRight size={16} /></button></div></Modal>}</div>;
+}
