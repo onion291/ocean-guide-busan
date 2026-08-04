@@ -42,6 +42,7 @@ jobs:
             folder=$(dirname "$html")
             if [ "$folder" != "dist/client" ]; then cp -R "$folder"/. dist/client/; fi
           fi
+          sed -i -E 's#(href|src)="/#\1="/ocean-guide-busan/#g' dist/client/index.html
           test -f dist/client/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
