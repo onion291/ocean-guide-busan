@@ -46,7 +46,8 @@ function renderMarkers(L: any, map: any, filter: string, setSelected: (p: Place)
   places.filter((p) => filter === "전체" || p.type === filter).forEach((place) => {
     const color = place.type === "해수욕장" ? "#0ea5e9" : place.type === "관광명소" ? "#8b5cf6" : place.type === "주차장" ? "#334155" : "#16a34a";
     const icon = L.divIcon({ className: "custom-leaflet-marker", html: `<span style="background:${color}">${place.type === "해수욕장" ? "〰" : place.type === "주차장" ? "P" : place.type === "에코스팟" ? "♻" : "★"}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] });
-    const marker = L.marker([place.lat, place.lon], { icon }).addTo(map).on("click", () => setSelected(place));
+    const popup = `<div class="map-detail-popup"><small>${place.type} · 부산 좌표</small><b>${place.name}</b><span>${place.detail}</span><em>위도 ${place.lat} · 경도 ${place.lon}</em></div>`;
+    const marker = L.marker([place.lat, place.lon], { icon }).bindPopup(popup, { closeButton: true, offset: [0, -18], className: "ocean-leaflet-popup" }).addTo(map).on("click", () => { setSelected(place); marker.openPopup(); });
     markersRef.current.push(marker);
   });
 }
