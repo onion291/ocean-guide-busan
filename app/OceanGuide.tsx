@@ -60,7 +60,7 @@ function Header({ onProfile }: { onProfile: () => void }) {
 
 const navItems: { id: Tab; label: string; icon: typeof Home }[] = [
   { id: "beach", label: "안전·해변", icon: ShieldCheck }, { id: "map", label: "지도", icon: MapIcon },
-  { id: "report", label: "AI 제보", icon: Camera }, { id: "tour", label: "관광·주차", icon: Compass },
+  { id: "report", label: "제보", icon: Camera }, { id: "tour", label: "관광·주차", icon: Compass },
   { id: "eco", label: "에코·마이", icon: Leaf },
 ];
 
@@ -119,5 +119,13 @@ function Modal({ onClose, title, children }: { onClose: () => void; title: strin
 
 export default function OceanGuide() {
   const [tab, setTab] = useState<Tab>("beach"); const [profile, setProfile] = useState(false);
+  useEffect(() => {
+    const labels = document.querySelectorAll<HTMLElement>("button, h1, h2, h3, p, span, small, b");
+    labels.forEach((node) => {
+      if (node.childElementCount === 0 && node.textContent) {
+        node.textContent = node.textContent.replaceAll("AI 제보", "제보").replaceAll("AI OCEAN KEEPER", "OCEAN REPORT").replaceAll("AI 분석 완료", "분석 완료").replaceAll("AI가 이미지를 분석하고 있어요", "사진을 분석하고 있어요");
+      }
+    });
+  }, [tab]);
   return <div className="app"><Header onProfile={() => setProfile(true)} />{tab === "beach" && <BeachView openMap={() => setTab("map")} />}{tab === "map" && <MapView />}{tab === "report" && <ReportView />}{tab === "tour" && <TourView />}{tab === "eco" && <EcoView />}<BottomNav tab={tab} setTab={setTab} /><footer><Logo /><p>부산의 안전한 바다와 지속 가능한 여행을 연결합니다.</p><span>데이터는 데모용으로 제공됩니다 · © 2026 Ocean Guide Busan</span></footer>{profile && <Modal onClose={() => setProfile(false)} title="내 프로필"><div className="profile-modal"><div className="big-avatar">H<span>LV.8</span></div><h3>김해린</h3><p>파도 수호자 · 2,480P</p><button onClick={() => { setProfile(false); setTab("eco"); }}>마이페이지로 이동 <ChevronRight size={16} /></button></div></Modal>}</div>;
 }
