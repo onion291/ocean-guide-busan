@@ -57,7 +57,7 @@ function Logo() {
 }
 
 function Header({ onProfile }: { onProfile: () => void }) {
-  return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>해린</span><div className="avatar">H</div></button></div></div></header>;
+  return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>프로필</span><div className="avatar">U</div></button></div></div></header>;
 }
 
 const navItems: { id: Tab; label: string; icon: typeof Home }[] = [
@@ -97,7 +97,7 @@ function MapView() {
 }
 
 function ReportView() {
-  const inputRef = useRef<HTMLInputElement>(null); const [sample, setSample] = useState(""); const [analyzing, setAnalyzing] = useState(false); const [result, setResult] = useState(false); const [reports, setReports] = useState(reportsSeed); const [place, setPlace] = useState("광안리해수욕장"); const [desc, setDesc] = useState(""); const [name, setName] = useState("김해린"); const [toast, setToast] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null); const [sample, setSample] = useState(""); const [analyzing, setAnalyzing] = useState(false); const [result, setResult] = useState(false); const [reports, setReports] = useState(reportsSeed); const [place, setPlace] = useState("광안리해수욕장"); const [desc, setDesc] = useState(""); const [name, setName] = useState(""); const [toast, setToast] = useState("");
   const analyze = (type: string) => { setSample(type); setResult(false); setAnalyzing(true); setTimeout(() => { setAnalyzing(false); setResult(true); }, 1450); };
   const submit = () => { if (!result) { setToast("먼저 사진을 분석해주세요."); return; } setReports([{ id: `B-${24082 + reports.length}`, type: sample || "플라스틱", place, time: "방금 전", status: "접수 완료" }, ...reports]); setToast("제보가 안전하게 접수되었어요! +100P"); setDesc(""); };
   useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(""), 2800); return () => clearTimeout(id); }, [toast]);
@@ -132,7 +132,9 @@ function OceanGuideBody() {
         node.textContent = node.textContent.replaceAll("AI 제보", "제보").replaceAll("AI OCEAN KEEPER", "OCEAN REPORT").replaceAll("AI 분석 완료", "분석 완료").replaceAll("AI가 이미지를 분석하고 있어요", "사진을 분석하고 있어요");
       }
     });
-  }, [tab]);
+    const profileName = document.querySelector<HTMLElement>(".profile-modal h3");
+    if (profileName && !localStorage.getItem("ocean-guide-user")) profileName.textContent = "로그인이 필요합니다";
+  }, [tab, profile]);
   useEffect(() => {
     if (document.querySelector(".account-fab")) return;
     const bar = document.createElement("div"); bar.className = "account-fab";
