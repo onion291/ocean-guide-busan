@@ -36,7 +36,12 @@ jobs:
         run: pnpm run build
       - name: Normalize static output
         run: |
-          if [ -d dist/client/ocean-guide-busan ]; then cp -R dist/client/ocean-guide-busan/. dist/client/; fi
+          html=$(find dist/client -name index.html -type f | head -n 1)
+          if [ -z "$html" ]; then html=$(find dist/client -name '*.html' -type f | head -n 1); fi
+          if [ -n "$html" ]; then
+            folder=$(dirname "$html")
+            if [ "$folder" != "dist/client" ]; then cp -R "$folder"/. dist/client/; fi
+          fi
           test -f dist/client/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
