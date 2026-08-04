@@ -14,7 +14,8 @@ export default function AccountWidget() {
   useEffect(() => { if (open === "login") setEmail(localStorage.getItem("ocean-guide-last-email") || ""); }, [open]);
   useEffect(() => {
     const bar = document.querySelector(".account-fab"); if (!bar) return;
-    bar.querySelectorAll(".auth-action").forEach((el) => el.remove()); if (!user) return;
+    bar.querySelectorAll(".auth-action, .previous-login-btn").forEach((el) => el.remove());
+    if (!user) { const last = localStorage.getItem("ocean-guide-last-email"); if (last) { const previous = document.createElement("button"); previous.className = "previous-login-btn"; previous.textContent = "이전 계정으로 로그인"; previous.onclick = () => { setEmail(last); setOpen("login"); }; bar.append(previous); } return; }
     const logout = document.createElement("button"); logout.className = "auth-action logout-btn"; logout.textContent = "로그아웃";
     logout.onclick = () => { localStorage.setItem("ocean-guide-last-email", user.email); localStorage.removeItem("ocean-guide-user"); setUser(null); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
     const withdraw = document.createElement("button"); withdraw.className = "auth-action withdraw-btn"; withdraw.textContent = "탈퇴";
