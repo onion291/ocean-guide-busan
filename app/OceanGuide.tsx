@@ -59,6 +59,7 @@ function Logo() {
 function Header({ onProfile }: { onProfile: () => void }) {
   const [profileLabel, setProfileLabel] = useState("로그인이 필요합니다");
   useEffect(() => { const load = () => { const raw = localStorage.getItem("ocean-guide-user"); setProfileLabel(raw ? (JSON.parse(raw).name || "프로필") : "로그인이 필요합니다"); }; load(); window.addEventListener("ocean-auth-changed", load); return () => window.removeEventListener("ocean-auth-changed", load); }, []);
+  useEffect(() => { const el = document.querySelector<HTMLElement>(".profile-btn span"); if (el) el.textContent = profileLabel; }, [profileLabel]);
   return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>프로필</span><div className="avatar">U</div></button></div></div></header>;
 }
 
