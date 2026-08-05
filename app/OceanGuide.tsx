@@ -176,6 +176,7 @@ function EcoView() {
 function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={onClose}><div className="modal" onMouseDown={e => e.stopPropagation()}><div className="modal-head"><h3>{title}</h3><button onClick={onClose}><X size={20} /></button></div>{children}</div></div>; }
 
 function OceanGuideBody() {
+  useEffect(() => { const button = document.querySelector<HTMLElement>(".profile-btn"); if (!button) return; const handler = () => { if (!localStorage.getItem("ocean-guide-user")) { window.dispatchEvent(new Event("ocean-open-login")); } }; button.addEventListener("click", handler, true); return () => button.removeEventListener("click", handler, true); }, []);
   const [tab, setTab] = useState<Tab>("beach"); const [profile, setProfile] = useState(false);
   useEffect(() => { if (profile && !localStorage.getItem("ocean-guide-user")) setProfile(false); }, [profile]);
   useEffect(() => { const closeGuestProfile = () => { if (!localStorage.getItem("ocean-guide-user")) setProfile(false); }; window.addEventListener("ocean-auth-changed", closeGuestProfile); return () => window.removeEventListener("ocean-auth-changed", closeGuestProfile); }, []);
