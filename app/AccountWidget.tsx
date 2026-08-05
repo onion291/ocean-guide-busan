@@ -10,7 +10,7 @@ export default function AccountWidget() {
   const [open, setOpen] = useState<"login" | "signup" | "reset" | "rank" | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [name, setName] = useState(""); const [message, setMessage] = useState("");
-  useEffect(() => { const saved = localStorage.getItem("ocean-guide-user"); if (saved) { const parsed = JSON.parse(saved) as User; if (parsed.name === "김해린" || parsed.name.includes("해린")) { localStorage.removeItem("ocean-guide-user"); setUser(null); } else setUser(parsed); } }, []);
+  useEffect(() => { const saved = localStorage.getItem("ocean-guide-user"); if (saved) { try { setUser(JSON.parse(saved) as User); } catch { localStorage.removeItem("ocean-guide-user"); } } }, []);
   useEffect(() => { if (open === "login") setEmail(localStorage.getItem("ocean-guide-last-email") || ""); }, [open]);
   useEffect(() => {
     const bar = document.querySelector(".account-fab"); if (!bar) return;
