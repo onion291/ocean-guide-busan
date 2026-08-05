@@ -3,9 +3,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { KeyRound, LockKeyhole, Medal, UserRound, X } from "lucide-react";
 import { createUserWithEmailAndPassword, deleteUser, GoogleAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
-import { firebaseAuth } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { firebaseAuth, firebaseDb } from "./firebase";
 
-type User = { email: string; name: string; password: string; points: number };
+type User = { email: string; name: string; password: string; points: number; photo?: string };
 const defaultRank: { name: string; points: number }[] = [];
 const accountsKey = "ocean-guide-accounts";
 const readAccounts = (): User[] => { try { const raw = localStorage.getItem(accountsKey); return raw ? JSON.parse(raw) : []; } catch { return []; } };
@@ -15,6 +16,8 @@ export default function AccountWidget() {
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [name, setName] = useState(""); const [message, setMessage] = useState("");
   useEffect(() => onAuthStateChanged(firebaseAuth, (fbUser) => { if (!fbUser) { setUser(null); localStorage.removeItem("ocean-guide-user"); return; } let saved: Partial<User> = {}; try { saved = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); } catch { saved = {}; } const emailKey = (fbUser.email || "").toLowerCase(); const savedPhoto = localStorage.getItem(`ocean-guide-photo-${emailKey}`) || ""; const next = { email: fbUser.email || "", name: fbUser.displayName || fbUser.email?.split("@")[0] || "사용자", password: "", points: saved.points || 0, photo: fbUser.photoURL || savedPhoto || (saved as User & { photo?: string }).photo || "" }; setUser(next); localStorage.setItem("ocean-guide-user", JSON.stringify(next)); }), []);
+  useEffect(() => { const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => { if (!fbUser) return; try { const ref = doc(firebaseDb, "users", fbUser.uid); const snap = await getDoc(ref); const remote = snap.exists() ? snap.data() as Partial<User> : {}; const current = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); const merged = { email: fbUser.email || current.email || "", name: remote.name || fbUser.displayName || current.name || fbUser.email?.split("@")[0] || "사용자", password: "", points: Number(remote.points ?? current.points ?? 0), photo: remote.photo || fbUser.photoURL || current.photo || "" }; await setDoc(ref, merged, { merge: true }); localStorage.setItem("ocean-guide-user", JSON.stringify(merged)); setUser(merged); window.dispatchEvent(new Event("ocean-auth-changed")); } catch { /* Firestore rules/setup may be pending; local auth remains usable. */ } }); return () => unsubscribe(); }, []);
+  useEffect(() => { const savePhoto = async () => { const current = firebaseAuth.currentUser; if (!current?.photoURL) return; try { await setDoc(doc(firebaseDb, "users", current.uid), { photo: current.photoURL, email: current.email || "" }, { merge: true }); } catch { /* Auth photoURL remains the fallback. */ } }; window.addEventListener("ocean-auth-changed", savePhoto); return () => window.removeEventListener("ocean-auth-changed", savePhoto); }, []);
   useEffect(() => { if (open === "login") setEmail(localStorage.getItem("ocean-guide-last-email") || ""); }, [open]);
   useEffect(() => {
     const bar = document.querySelector(".account-fab"); if (!bar) return;
