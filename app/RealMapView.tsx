@@ -36,6 +36,7 @@ export default function RealMapView() {
   const [filter, setFilter] = useState("전체");
   const [liveTick, setLiveTick] = useState(0);
   useEffect(() => { const timer = window.setInterval(() => setLiveTick((v) => v + 1), 10000); return () => window.clearInterval(timer); }, []);
+  useEffect(() => { const refresh = () => setLiveTick((v) => v + 1); window.addEventListener("ocean-report-added", refresh); return () => window.removeEventListener("ocean-report-added", refresh); }, []);
   useEffect(() => { const filters = document.querySelector<HTMLElement>(".leaflet-map-shell")?.parentElement?.querySelector(".filters"); if (!filters || filters.querySelector(".report-filter")) return; const button = document.createElement("button"); button.className = "report-filter"; button.textContent = "제보"; button.onclick = () => setFilter("제보"); filters.appendChild(button); }, []);
 
   useEffect(() => {
