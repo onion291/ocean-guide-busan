@@ -18,6 +18,7 @@ import { firebaseAuth, firebaseDb } from "./firebase";
 type Tab = "beach" | "map" | "report" | "tour" | "eco";
 type Safety = "안전" | "주의" | "위험";
 const levelFromPoints = (points: number, carbon = 0) => { let level = 1; let required = 1000; let remaining = Math.max(0, points) + Math.floor(Math.max(0, carbon) / 10); while (remaining >= required) { remaining -= required; level += 1; required += 500; } return level; };
+const compressProfilePhoto = (file: File) => new Promise<string>((resolve) => { const reader = new FileReader(); reader.onload = () => { const image = new Image(); image.onload = () => { const size = 256; const canvas = document.createElement("canvas"); canvas.width = size; canvas.height = size; const context = canvas.getContext("2d"); if (!context) { resolve(String(reader.result)); return; } const scale = Math.max(size / image.width, size / image.height); const width = image.width * scale; const height = image.height * scale; context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height); resolve(canvas.toDataURL("image/jpeg", 0.72)); }; image.src = String(reader.result); }; reader.readAsDataURL(file); });
 
 const beaches = [
   { name: "해운대", area: "해운대구", safety: "주의" as Safety, desc: "파고가 다소 높아요", temp: 24.2, wave: 1.2, uv: 7, crowd: 82, jelly: "낮음", rip: "주의", trash: "양호", x: 64, y: 33 },
