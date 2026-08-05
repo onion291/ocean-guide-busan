@@ -57,13 +57,19 @@ const parking = [
   { name: "송정 중앙 공영주차장", place: "송정까지 2분", left: 67, total: 103, fee: "10분 300원", ev: false },
 ];
 
-const challenges = [
+const legacyChallenges = [
   { emoji: "🌊", title: "7일 연속 비치 플로깅", desc: "하루 20분, 부산의 바다를 가볍게", progress: 4, total: 7, point: 700, color: "blue" },
   { emoji: "🥤", title: "일회용컵 없는 주말", desc: "에코카페 3곳에서 다회용컵 사용", progress: 1, total: 3, point: 350, color: "green" },
   { emoji: "🧤", title: "광안리 합동 플로깅", desc: "8월 9일 토요일 · 오전 9시", progress: 78, total: 100, point: 500, color: "orange" },
 ];
 
 const statusStyle: Record<Safety, string> = { 안전: "safe", 주의: "caution", 위험: "danger" };
+
+const challenges = [
+  { emoji: "🧤", title: "해변 쓰레기 1회 수거", desc: "현장에서 20분 이상 플로깅하고 위치 인증", progress: 0, total: 1, point: 100, color: "blue" },
+  { emoji: "📍", title: "에코 스팟 방문 인증", desc: "수거함·에코카페 등 지정 장소를 방문", progress: 0, total: 3, point: 300, color: "green" },
+  { emoji: "📸", title: "사진 인증 제보 3건", desc: "AI 분석을 통과한 해양 쓰레기 제보 등록", progress: 0, total: 3, point: 300, color: "orange" },
+];
 
 function Logo() {
   return <div className="brand"><div className="brand-mark"><Waves size={22} strokeWidth={2.6} /></div><div><b>바다길잡이</b><span>OCEAN GUIDE · BUSAN</span></div></div>;
@@ -119,7 +125,8 @@ function MapView() {
 function ReportView() {
   const inputRef = useRef<HTMLInputElement>(null); const [sample, setSample] = useState(""); const [analyzing, setAnalyzing] = useState(false); const [result, setResult] = useState(false); const [reports, setReports] = useState(reportsSeed); const [place, setPlace] = useState("광안리해수욕장"); const [desc, setDesc] = useState(""); const [name, setName] = useState(""); const [toast, setToast] = useState(""); const [reportKind, setReportKind] = useState<"쓰레기" | "유해 해양생물">("쓰레기");
   useEffect(() => { try { const stored = JSON.parse(localStorage.getItem("ocean-guide-reports") || "[]"); setReports(Array.isArray(stored) ? stored.filter((r) => !String(r?.id || "").startsWith("B-")) : []); } catch { setReports([]); } }, []);
-  const analyze = (type: string) => { setSample(type); setResult(false); setAnalyzing(true); setTimeout(() => { setAnalyzing(false); setResult(true); }, 1450); };
+  const analyze = (type: string) => { const detected = reportKind === "유해 해양생물" && type === "플라스틱" ? "해파리 출몰" : type; setSample(detected); setResult(false); setAnalyzing(true); setTimeout(() => { setAnalyzing(false); setResult(true); }, 1450); };
+  useEffect(() => { const title = document.querySelector<HTMLElement>(".upload-card h3"); if (title) title.textContent = reportKind === "유해 해양생물" ? "유해 생물 사진을 올려주세요" : "쓰레기 사진을 올려주세요"; const description = document.querySelector<HTMLElement>(".upload-card p"); if (description) description.textContent = reportKind === "유해 해양생물" ? "해파리·불가사리 등 유해 생물을 촬영해 주세요" : "사진을 끌어놓거나 눌러서 선택하세요"; const submitLabel = document.querySelector<HTMLElement>(".submit-btn"); if (submitLabel) submitLabel.childNodes.forEach((node) => { if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) node.textContent = reportKind === "유해 해양생물" ? " 유해 해양생물 제보하기 " : " 해양 쓰레기 제보하기 "; }); }, [reportKind]);
   const submit = () => { if (!result && reportKind === "쓰레기") { setToast("먼저 사진을 분석해주세요."); return; } const coords: Record<string, [number, number]> = { "해운대해수욕장": [35.1587, 129.1604], "광안리해수욕장": [35.1532, 129.1187], "송정해수욕장": [35.1786, 129.1997], "다대포해수욕장": [35.0464, 128.9661], "송도해수욕장": [35.0762, 129.0188] }; const [lat, lon] = coords[place] || coords["광안리해수욕장"]; const next = { id: `R-${Date.now()}`, type: reportKind === "유해 해양생물" ? (sample || "해파리 출몰") : (sample || "플라스틱"), reportKind, place, lat, lon, time: new Date().toISOString(), status: "접수 완료" }; setReports([next, ...reports]); const stored = JSON.parse(localStorage.getItem("ocean-guide-reports") || "[]"); localStorage.setItem("ocean-guide-reports", JSON.stringify([next, ...stored].slice(0, 100))); window.dispatchEvent(new Event("ocean-report-added")); setToast("제보가 안전하게 접수되었어요! +100P"); setDesc(""); };
   useEffect(() => { const layout = document.querySelector<HTMLElement>(".report-layout"); if (!layout || layout.querySelector(".report-type-tabs")) return; const tabs = document.createElement("div"); tabs.className = "report-type-tabs"; tabs.innerHTML = `<button class="active">쓰레기 제보</button><button>유해 해양생물 제보</button>`; tabs.querySelectorAll("button").forEach((button, index) => button.addEventListener("click", () => { setReportKind(index === 0 ? "쓰레기" : "유해 해양생물"); tabs.querySelectorAll("button").forEach((b) => b.classList.remove("active")); button.classList.add("active"); setSample(index === 1 ? "해파리 출몰" : ""); setResult(false); })); layout.prepend(tabs); }, []);
   useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(""), 2800); return () => clearTimeout(id); }, [toast]);
@@ -138,6 +145,15 @@ function TourView() {
 function EcoView() {
   const [joined, setJoined] = useState<string[]>([challenges[0].title]); const [modal, setModal] = useState(false);
   const [auth, setAuth] = useState<{ email: string; name: string; password: string; points: number } | null>(null);
+  const [badgeTick, setBadgeTick] = useState(0);
+  useEffect(() => { const refresh = () => setBadgeTick((v) => v + 1); window.addEventListener("ocean-mission-verified", refresh); return () => window.removeEventListener("ocean-mission-verified", refresh); }, []);
+  const verifiedPhotos = Number(typeof window !== "undefined" ? localStorage.getItem("ocean-guide-verified-photos") || 0 : 0);
+  const verifiedVisits = Number(typeof window !== "undefined" ? localStorage.getItem("ocean-guide-visits") || 0 : 0);
+  const verifiedSteps = Number(typeof window !== "undefined" ? localStorage.getItem("ocean-guide-steps") || 0 : 0);
+  const badgeState = [verifiedPhotos >= 1, verifiedVisits >= 1, verifiedPhotos >= 3, verifiedSteps >= 5000];
+  void badgeTick;
+  useEffect(() => { document.querySelectorAll<HTMLElement>(".badge-row > div").forEach((badge, index) => badge.classList.toggle("locked", !badgeState[index])); }, [badgeTick, auth]);
+  useEffect(() => { const verify = () => { try { const reports = JSON.parse(localStorage.getItem("ocean-guide-reports") || "[]"); const latest = reports[0]; if (latest?.reportKind === "쓰레기") { localStorage.setItem("ocean-guide-verified-photos", String(Number(localStorage.getItem("ocean-guide-verified-photos") || 0) + 1)); window.dispatchEvent(new Event("ocean-mission-verified")); } } catch {} }; window.addEventListener("ocean-report-added", verify); return () => window.removeEventListener("ocean-report-added", verify); }, []);
   useEffect(() => { const load = () => { const raw = localStorage.getItem("ocean-guide-user"); if (!raw) { setAuth(null); return; } try { setAuth(JSON.parse(raw)); } catch { localStorage.removeItem("ocean-guide-user"); setAuth(null); } }; load(); window.addEventListener("ocean-auth-changed", load); return () => window.removeEventListener("ocean-auth-changed", load); }, []);
   useEffect(() => { if (!auth) return; const hero = document.querySelector(".profile-hero"); if (!hero) return; const name = auth.name || auth.email.split("@")[0]; const points = auth.points || 0; const level = Math.max(1, Math.floor(points / 500) + 1); const avatar = hero.querySelector<HTMLElement>(".big-avatar"); if (avatar) { avatar.childNodes[0].textContent = auth.photo ? "" : name.charAt(0).toUpperCase(); avatar.style.backgroundImage = auth.photo ? `url(${auth.photo})` : ""; avatar.style.backgroundSize = auth.photo ? "cover" : ""; const levelTag = avatar.querySelector("span"); if (levelTag) levelTag.textContent = `LV.${level}`; } const heading = hero.querySelector<HTMLElement>(".profile-main h1"); if (heading) heading.textContent = `${name} 님`; const greeting = hero.querySelector<HTMLElement>(".profile-main small"); if (greeting) greeting.textContent = "오늘도 바다를 지키는"; const status = hero.querySelector<HTMLElement>(".profile-main p"); if (status) status.textContent = `에코 활동가 · LV.${level} · 다음 레벨 ${(level * 500).toLocaleString()}P`; const point = hero.querySelector<HTMLElement>(".point-card strong"); if (point) point.innerHTML = `${points.toLocaleString()}<small>P</small>`;
     const stats = hero.querySelectorAll<HTMLElement>(".profile-stats b"); const steps = Number(localStorage.getItem("ocean-guide-steps") || 0); const visits = Number(localStorage.getItem("ocean-guide-visits") || 0); const missions = Number(localStorage.getItem("ocean-guide-missions") || 0); if (stats[0]) stats[0].textContent = steps.toLocaleString(); if (stats[1]) stats[1].textContent = visits.toString(); if (stats[2]) stats[2].textContent = missions.toString();

@@ -47,6 +47,7 @@ export default function RealMapView() {
       const map = L.map(mapRef.current, { zoomControl: true }).setView([35.155, 129.14], 12);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors" }).addTo(map);
       leafletRef.current = { L, map };
+      window.setTimeout(() => map.invalidateSize(), 150);
       renderMarkers(L, map, filter, setSelected, markersRef);
     })();
     return () => { mounted = false; if (leafletRef.current) { leafletRef.current.map.remove(); leafletRef.current = null; } };
