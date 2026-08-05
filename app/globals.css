@@ -40,3 +40,5 @@
 .ranking-empty{padding:22px 4px;color:#8797a3;font-size:10px;line-height:1.5;text-align:center}
 .report-type-tabs{display:flex;gap:8px;margin:14px 0}.report-type-tabs button{border:1px solid #d8e5ed;background:#fff;color:#587080;border-radius:10px;padding:9px 13px;font-size:11px;font-weight:800;cursor:pointer}.report-type-tabs button.active{background:#0ea5e9;border-color:#0ea5e9;color:#fff;box-shadow:0 5px 12px rgba(14,165,233,.2)}
 .report-type-tabs button{transition:background .25s ease,color .25s ease,border-color .25s ease,transform .25s ease}.report-type-tabs button:active{transform:scale(.97)}.report-kind-switch{animation:reportKindSwitch .42s ease both}@keyframes reportKindSwitch{0%{opacity:.5;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
+.account-fab{top:14px;z-index:65;align-items:center;max-width:calc(100vw - 36px);overflow-x:auto;padding:2px}.account-fab button{white-space:nowrap}
+@media(max-width:640px){.account-fab{top:66px;right:10px;left:10px;justify-content:flex-end}.account-fab button{padding:7px 9px;font-size:9px}}
