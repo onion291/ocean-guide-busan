@@ -173,6 +173,7 @@ function OceanGuideBody() {
     if (profileAvatar && profileUser?.name) { const profileLevel = Math.max(1, Math.floor((profileUser.points || 0) / 500) + 1); profileAvatar.childNodes[0].textContent = profileUser.photo ? "" : profileUser.name.charAt(0).toUpperCase(); profileAvatar.style.backgroundImage = profileUser.photo ? `url(${profileUser.photo})` : ""; profileAvatar.style.backgroundSize = profileUser.photo ? "cover" : ""; const levelTag = profileAvatar.querySelector("span"); if (levelTag) levelTag.textContent = `LV.${profileLevel}`; }
     const headerProfile = document.querySelector<HTMLElement>(".profile-btn span");
     if (headerProfile) headerProfile.textContent = profileUser?.name || "로그인이 필요합니다";
+    if (profileUser) { const currentLevel = Math.max(1, Math.floor((profileUser.points || 0) / 500) + 1); document.querySelectorAll<HTMLElement>(".profile-modal .big-avatar span, .profile-hero .big-avatar span").forEach((tag) => { tag.textContent = `LV.${currentLevel}`; }); }
   }, [tab, profile]);
   useEffect(() => {
     if (document.querySelector(".account-fab")) return;

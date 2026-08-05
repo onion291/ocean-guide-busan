@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword, deleteUser, GoogleAuthProvider, onAuthS
 import { firebaseAuth } from "./firebase";
 
 type User = { email: string; name: string; password: string; points: number };
-const defaultRank = [{ name: "파도지킴이", points: 2480 }, { name: "푸른바다", points: 2210 }, { name: "그린러너", points: 1980 }, { name: "바다친구", points: 1650 }, { name: "해변지킴이", points: 1510 }, { name: "오션러너", points: 1390 }, { name: "파도친구", points: 1240 }, { name: "그린웨이브", points: 1110 }, { name: "부산플로거", points: 980 }, { name: "에코메이트", points: 860 }, { name: "바다새싹", points: 740 }];
+const defaultRank: { name: string; points: number }[] = [];
 const accountsKey = "ocean-guide-accounts";
 const readAccounts = (): User[] => { try { const raw = localStorage.getItem(accountsKey); return raw ? JSON.parse(raw) : []; } catch { return []; } };
 
@@ -26,7 +26,7 @@ export default function AccountWidget() {
     withdraw.onclick = async () => { if (!window.confirm("계정을 탈퇴하시겠습니까? 계정이 영구 삭제됩니다.")) return; if (firebaseAuth.currentUser) await deleteUser(firebaseAuth.currentUser); localStorage.removeItem("ocean-guide-user"); localStorage.removeItem("ocean-guide-last-email"); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
     bar.append(logout, withdraw);
   }, [user]);
-  useEffect(() => { document.querySelectorAll<HTMLElement>(".ranking-list > div").forEach((row, index) => { row.style.display = index < 10 ? "" : "none"; }); }, [open, user]);
+  useEffect(() => { const list = document.querySelector<HTMLElement>(".ranking-list"); if (!list) return; document.querySelectorAll<HTMLElement>(".ranking-list > div").forEach((row, index) => { row.style.display = index < 10 ? "" : "none"; }); if (!list.querySelector(".ranking-empty")) { const empty = document.createElement("p"); empty.className = "ranking-empty"; empty.textContent = user ? "현재 내 랭킹만 표시됩니다. 다른 사용자 랭킹은 실제 집계 후 제공됩니다." : "로그인하면 내 랭킹을 확인할 수 있습니다."; list.appendChild(empty); } }, [open, user]);
   useEffect(() => { if (open !== "login") return; const form = document.querySelector(".account-form"); if (!form || form.querySelector(".google-login-btn")) return; const divider = document.createElement("div"); divider.className = "social-divider"; divider.textContent = "또는"; const google = document.createElement("button"); google.type = "button"; google.className = "google-login-btn"; google.textContent = "Google 계정으로 로그인"; google.onclick = async () => { try { await signInWithPopup(firebaseAuth, new GoogleAuthProvider()); setOpen(null); } catch { setMessage("Google 로그인에 실패했습니다. 다시 시도해주세요."); } }; form.append(divider, google); }, [open]);
   const close = () => { setOpen(null); setMessage(""); setEmail(""); setPassword(""); setName(""); };
   const submit = async (e: FormEvent) => { e.preventDefault();
