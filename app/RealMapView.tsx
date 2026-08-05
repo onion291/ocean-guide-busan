@@ -68,10 +68,12 @@ export default function RealMapView() {
 function renderMarkers(L: any, map: any, filter: string, setSelected: (p: Place) => void, markersRef: { current: any[] }) {
   markersRef.current.forEach((marker) => marker.remove());
   markersRef.current = [];
+  const normalizeType = (value: string) => value.replace(/\\s+/g, "");
   const recentReports: Place[] = (() => { try { return (JSON.parse(localStorage.getItem("ocean-guide-reports") || "[]") as Array<{ type: string; place: string; lat: number; lon: number; time: string; reportKind?: string }>).filter((r) => Date.now() - new Date(r.time).getTime() <= 3 * 60 * 60 * 1000).map((r) => ({ name: `${r.reportKind || "제보"} · ${r.place}`, type: "제보", lat: r.lat, lon: r.lon, detail: `${r.type} 최근 제보 · 접수 후 3시간 이내`, popularity: "최근 3시간 제보" })); } catch { return []; } })();
-  [...places, ...ecoPlaces, ...recentReports].filter((p) => filter === "전체" || p.type === filter || (filter === "제보" && p.type === "제보")).forEach((place) => {
-    const color = place.type === "해수욕장" ? "#0ea5e9" : place.type === "관광명소" ? "#8b5cf6" : place.type === "주차장" ? "#334155" : place.type === "제보" ? "#ef4444" : "#16a34a";
-    const icon = L.divIcon({ className: "custom-leaflet-marker", html: `<span style="background:${color}">${place.type === "해수욕장" ? "〰" : place.type === "주차장" ? "P" : place.type === "에코스팟" ? "♻" : place.type === "제보" ? "!" : "★"}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] });
+  [...places, ...ecoPlaces, ...recentReports].filter((p) => filter === "전체" || normalizeType(p.type) === normalizeType(filter) || (filter === "제보" && p.type === "제보")).forEach((place) => {
+    const normalizedType = normalizeType(place.type);
+    const color = normalizedType === "해수욕장" ? "#0ea5e9" : normalizedType === "관광명소" ? "#8b5cf6" : normalizedType === "주차장" ? "#334155" : normalizedType === "제보" ? "#ef4444" : "#16a34a";
+    const icon = L.divIcon({ className: "custom-leaflet-marker", html: `<span style="background:${color}">${normalizedType === "해수욕장" ? "〰" : normalizedType === "주차장" ? "P" : normalizedType === "에코스팟" ? "♻" : normalizedType === "제보" ? "!" : "★"}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] });
     const liveLeft = place.left == null ? undefined : Math.max(0, place.left + Math.round(Math.sin(Date.now() / 30000 + place.lat) * 4));
     const parkingInfo = liveLeft == null ? "" : `<strong class="parking-live">남은 자리 ${liveLeft} / ${place.total}면 · ${liveLeft / (place.total || 1) < .15 ? "혼잡" : "여유"}</strong>`;
     const popup = `<div class="map-detail-popup"><small>${place.type} · 부산 좌표</small><b>${place.name}</b><span>${place.detail}</span>${place.popularity ? `<em class="popular-live">${place.popularity}</em>` : ""}${parkingInfo}<em>위도 ${place.lat} · 경도 ${place.lon}</em></div>`;
