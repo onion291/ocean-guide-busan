@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBp1o27DuxjSkHxaLaEQzAPrM5BiCKih5Y",
-  authDomain: "pop-onion.firebaseapp.com",
-  projectId: "pop-onion",
-  storageBucket: "pop-onion.firebasestorage.app",
-  messagingSenderId: "722915379793",
-  appId: "1:722915379793:web:729ef539b4fbda7c510670",
+  apiKey: "AIzaSyCOv_VYHIpP9tBjrGfyoCFriOslNUId22Q",
+  authDomain: "ocean-guide-15309.firebaseapp.com",
+  projectId: "ocean-guide-15309",
+  storageBucket: "ocean-guide-15309.firebasestorage.app",
+  messagingSenderId: "804526260733",
+  appId: "1:804526260733:web:d520b99b12802b13691994",
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);

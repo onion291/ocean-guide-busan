@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword, deleteUser, onAuthStateChanged, sendPas
 import { firebaseAuth } from "./firebase";
 
 type User = { email: string; name: string; password: string; points: number };
-const defaultRank = [{ name: "파도지킴이", points: 2480 }, { name: "푸른바다", points: 2210 }, { name: "그린러너", points: 1980 }, { name: "바다친구", points: 1650 }];
+const defaultRank = [{ name: "파도지킴이", points: 2480 }, { name: "푸른바다", points: 2210 }, { name: "그린러너", points: 1980 }, { name: "바다친구", points: 1650 }, { name: "해변지킴이", points: 1510 }, { name: "오션러너", points: 1390 }, { name: "파도친구", points: 1240 }, { name: "그린웨이브", points: 1110 }, { name: "부산플로거", points: 980 }, { name: "에코메이트", points: 860 }, { name: "바다새싹", points: 740 }];
 const accountsKey = "ocean-guide-accounts";
 const readAccounts = (): User[] => { try { const raw = localStorage.getItem(accountsKey); return raw ? JSON.parse(raw) : []; } catch { return []; } };
 
@@ -26,6 +26,7 @@ export default function AccountWidget() {
     withdraw.onclick = async () => { if (!window.confirm("계정을 탈퇴하시겠습니까? 계정이 영구 삭제됩니다.")) return; if (firebaseAuth.currentUser) await deleteUser(firebaseAuth.currentUser); localStorage.removeItem("ocean-guide-user"); localStorage.removeItem("ocean-guide-last-email"); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
     bar.append(logout, withdraw);
   }, [user]);
+  useEffect(() => { document.querySelectorAll<HTMLElement>(".ranking-list > div").forEach((row, index) => { row.style.display = index < 10 ? "" : "none"; }); }, [open, user]);
   const close = () => { setOpen(null); setMessage(""); setEmail(""); setPassword(""); setName(""); };
   const submit = async (e: FormEvent) => { e.preventDefault();
     try {
