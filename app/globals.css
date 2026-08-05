@@ -62,4 +62,5 @@
 /* 고정 메뉴 버튼과 헤더 로고가 겹치지 않도록 로고 영역을 확보합니다. */
 .topbar-inner{padding-left:72px}
 @media(max-width:640px){.topbar-inner{padding-left:60px}}
+.brand-mark.logo-image-wrap{background:transparent;box-shadow:none;border-radius:0;overflow:hidden}.brand-mark.logo-image-wrap img{width:100%;height:100%;object-fit:contain;display:block}
 .site-sidebar>strong{font-size:0}.site-sidebar>strong::after{content:"Ocean Guide";font-size:18px}

@@ -74,7 +74,7 @@ const challenges = [
 ];
 
 function Logo() {
-  return <div className="brand"><div className="brand-mark"><Waves size={22} strokeWidth={2.6} /></div><div><b>Ocean Guide</b><span>OCEAN GUIDE · BUSAN</span></div></div>;
+  return <div className="brand"><div className="brand-mark logo-image-wrap"><img src="/ocean-guide-favicon.png" alt="Ocean Guide 로고" /></div><div><b>Ocean Guide</b><span>OCEAN GUIDE · BUSAN</span></div></div>;
 }
 
 function Header({ onProfile }: { onProfile: () => void }) {
