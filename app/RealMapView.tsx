@@ -20,6 +20,12 @@ const places: Place[] = [
   { name: "송정 공영주차장", type: "주차장", lat: 35.1802, lon: 129.2018, detail: "송정해수욕장 도보 4분 거리입니다.", total: 180, left: 36 },
   { name: "민락수변공원 주차장", type: "주차장", lat: 35.1535, lon: 129.1262, detail: "수변공원과 회센터 인근 주차장입니다.", total: 260, left: 18 },
   { name: "다대포 해변공원 주차장", type: "주차장", lat: 35.0464, lon: 128.9661, detail: "다대포 일몰 명소와 가까운 넓은 주차장입니다.", total: 320, left: 142 },
+  { name: "흰여울문화마을", type: "관광명소", lat: 35.0781, lon: 129.0452, detail: "영도 해안 산책로와 골목 풍경을 즐기는 대표 명소입니다.", popularity: "주말 인기" },
+  { name: "오륙도 스카이워크", type: "관광명소", lat: 35.1006, lon: 129.1233, detail: "해안 절벽 위 유리 전망대입니다.", popularity: "오늘 추천" },
+  { name: "송정 카페거리", type: "관광명소", lat: 35.1794, lon: 129.1995, detail: "바다 전망 카페가 모여 있는 송정 해변 거리입니다.", popularity: "오션뷰 인기" },
+  { name: "해운대 달맞이길", type: "관광명소", lat: 35.1581, lon: 129.1802, detail: "해운대와 송정을 잇는 산책·드라이브 명소입니다.", popularity: "노을 추천" },
+  { name: "흰여울비치 카페", type: "에코스팟", lat: 35.0772, lon: 129.0441, detail: "다회용컵을 운영하는 영도 오션뷰 카페입니다." },
+  { name: "광안리 해변축제 광장", type: "관광명소", lat: 35.1537, lon: 129.1184, detail: "드론쇼와 계절 행사가 열리는 광안리 중심 구역입니다.", popularity: "이번 주 행사" },
 ];
 
 export default function RealMapView() {

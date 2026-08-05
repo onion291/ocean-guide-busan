@@ -36,6 +36,14 @@ const spots = [
   { cat: "카페", icon: "☕", name: "웨이브온 커피", area: "기장 · 바다 전망", rating: 4.7, tag: "다회용컵" },
   { cat: "명소", icon: "🌉", name: "청사포 다릿돌전망대", area: "청사포 · 무료", rating: 4.6, tag: "노을 명소" },
   { cat: "축제", icon: "🎆", name: "광안리 M 드론 라이트쇼", area: "매주 토요일 20:00", rating: 4.9, tag: "이번 주" },
+  { cat: "맛집", icon: "🍣", name: "금수복국 해운대본점", area: "해운대 · 복국 전문", rating: 4.6, tag: "현지 인기" },
+  { cat: "맛집", icon: "🍜", name: "개미집 본점", area: "광안리 · 낙곱새", rating: 4.5, tag: "부산 대표" },
+  { cat: "카페", icon: "🌊", name: "흰여울비치", area: "영도 · 오션뷰", rating: 4.7, tag: "인생샷" },
+  { cat: "카페", icon: "🥐", name: "카페 드 220볼트", area: "송정 · 대형 카페", rating: 4.6, tag: "주차 가능" },
+  { cat: "명소", icon: "🏘️", name: "흰여울문화마을", area: "영도 · 산책 코스", rating: 4.8, tag: "대표 명소" },
+  { cat: "명소", icon: "🌅", name: "오륙도 스카이워크", area: "남구 · 무료 입장", rating: 4.7, tag: "바다 전망" },
+  { cat: "축제", icon: "🎵", name: "부산 바다축제", area: "다대포 · 여름 시즌", rating: 4.8, tag: "시즌 행사" },
+  { cat: "축제", icon: "🎬", name: "부산국제영화제", area: "센텀시티 · 10월", rating: 4.9, tag: "대표 축제" },
 ];
 
 const parking = [
@@ -58,9 +66,10 @@ function Logo() {
 
 function Header({ onProfile }: { onProfile: () => void }) {
   const [profileLabel, setProfileLabel] = useState("로그인이 필요합니다");
-  useEffect(() => { const load = () => { const raw = localStorage.getItem("ocean-guide-user"); setProfileLabel(raw ? (JSON.parse(raw).name || "프로필") : "로그인이 필요합니다"); }; load(); window.addEventListener("ocean-auth-changed", load); return () => window.removeEventListener("ocean-auth-changed", load); }, []);
+  const [profilePhoto, setProfilePhoto] = useState("");
+  useEffect(() => { const load = () => { const raw = localStorage.getItem("ocean-guide-user"); const user = raw ? JSON.parse(raw) : null; setProfileLabel(user?.name || "로그인이 필요합니다"); setProfilePhoto(user?.photo || ""); }; load(); window.addEventListener("ocean-auth-changed", load); return () => window.removeEventListener("ocean-auth-changed", load); }, []);
   useEffect(() => { const el = document.querySelector<HTMLElement>(".profile-btn span"); if (el) el.textContent = profileLabel; }, [profileLabel]);
-  return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>프로필</span><div className="avatar">U</div></button></div></div></header>;
+  return <header className="topbar"><div className="topbar-inner"><Logo /><div className="header-actions"><button className="weather" aria-label="오늘 부산 날씨"><Sun size={16} fill="currentColor" /><b>27°</b><span>부산 · 맑음</span></button><button className="icon-btn notification" aria-label="알림"><Bell size={20} /><i /></button><button className="profile-btn" onClick={onProfile}><span>{profileLabel}</span><div className="avatar" style={profilePhoto ? { backgroundImage: `url(${profilePhoto})`, backgroundSize: "cover", color: "transparent" } : undefined}>{profilePhoto ? "" : profileLabel === "로그인이 필요합니다" ? "" : profileLabel.charAt(0).toUpperCase()}</div></button></div></div></header>;
 }
 
 const navItems: { id: Tab; label: string; icon: typeof Home }[] = [
@@ -130,6 +139,8 @@ function Modal({ onClose, title, children }: { onClose: () => void; title: strin
 
 function OceanGuideBody() {
   const [tab, setTab] = useState<Tab>("beach"); const [profile, setProfile] = useState(false);
+  useEffect(() => { if (profile && !localStorage.getItem("ocean-guide-user")) setProfile(false); }, [profile]);
+  useEffect(() => { const closeGuestProfile = () => { if (!localStorage.getItem("ocean-guide-user")) setProfile(false); }; window.addEventListener("ocean-auth-changed", closeGuestProfile); return () => window.removeEventListener("ocean-auth-changed", closeGuestProfile); }, []);
   useEffect(() => {
     const labels = document.querySelectorAll<HTMLElement>("button, h1, h2, h3, p, span, small, b");
     labels.forEach((node) => {
@@ -145,6 +156,13 @@ function OceanGuideBody() {
     if (profileDescription) profileDescription.textContent = profileUser ? `${profileUser.email || "로그인 계정"} · ${(profileUser.points || 0).toLocaleString()}P` : "로그인 후 프로필을 확인할 수 있습니다.";
     const profileMove = document.querySelector<HTMLElement>(".profile-modal button");
     if (profileMove) profileMove.style.display = "none";
+    const profileModal = document.querySelector<HTMLElement>(".profile-modal");
+    if (profileModal && profileUser && !profileModal.querySelector(".profile-photo-picker")) {
+      const picker = document.createElement("label"); picker.className = "profile-photo-picker"; picker.textContent = "프로필 사진 변경";
+      const input = document.createElement("input"); input.type = "file"; input.accept = "image/*"; input.hidden = true;
+      input.onchange = () => { const file = input.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const current = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); current.photo = String(reader.result); localStorage.setItem("ocean-guide-user", JSON.stringify(current)); window.dispatchEvent(new Event("ocean-auth-changed")); }; reader.readAsDataURL(file); };
+      picker.appendChild(input); profileModal.appendChild(picker);
+    }
     const profileAvatar = document.querySelector<HTMLElement>(".profile-modal .big-avatar");
     if (profileAvatar && profileUser?.name) profileAvatar.childNodes[0].textContent = profileUser.name.charAt(0).toUpperCase();
     const headerProfile = document.querySelector<HTMLElement>(".profile-btn span");
