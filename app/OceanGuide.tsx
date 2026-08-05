@@ -144,7 +144,7 @@ function TourView() {
 }
 
 function EcoView() {
-  const [joined, setJoined] = useState<string[]>([challenges[0].title]); const [modal, setModal] = useState(false);
+  const [joined, setJoined] = useState<string[]>([]); const [modal, setModal] = useState(false);
   const [auth, setAuth] = useState<{ email: string; name: string; password: string; points: number } | null>(null);
   const [badgeTick, setBadgeTick] = useState(0);
   useEffect(() => { const refresh = () => setBadgeTick((v) => v + 1); window.addEventListener("ocean-mission-verified", refresh); return () => window.removeEventListener("ocean-mission-verified", refresh); }, []);
@@ -205,7 +205,7 @@ function OceanGuideBody() {
     const bar = document.createElement("div"); bar.className = "account-fab";
     bar.innerHTML = '<button type="button">👤 로그인</button><button type="button">🏅 랭킹</button>';
     bar.children[0].addEventListener("click", () => { const email = window.prompt("이메일을 입력하세요"); if (!email) return; const password = window.prompt("비밀번호를 입력하세요"); if (!password) return; localStorage.setItem("ocean-guide-login", JSON.stringify({ email })); window.alert(`${email} 계정으로 로그인되었습니다.`); });
-    bar.children[1].addEventListener("click", () => window.alert("마일리지 랭킹\n1위 해변지킴이 2,480P\n2위 파도수호자 2,210P\n3위 그린러너 1,980P"));
+    bar.children[1].addEventListener("click", () => window.alert("마일리지 랭킹은 실제 가입·활동 계정만 표시됩니다."));
     document.body.appendChild(bar); return () => bar.remove();
   }, []);
   return <div className="app"><Header onProfile={() => setProfile(true)} />{tab === "beach" && <BeachView openMap={() => setTab("map")} />}{tab === "map" && <MapView />}{tab === "report" && <ReportView />}{tab === "tour" && <TourView />}{tab === "eco" && <EcoView />}<BottomNav tab={tab} setTab={setTab} /><footer><Logo /><p>부산의 안전한 바다와 지속 가능한 여행을 연결합니다.</p><span>데이터는 데모용으로 제공됩니다 · © 2026 Ocean Guide Busan</span></footer>{profile && <Modal onClose={() => setProfile(false)} title="내 프로필"><div className="profile-modal"><div className="big-avatar">H<span>LV.8</span></div><h3>김해린</h3><p>파도 수호자 · 2,480P</p><button onClick={() => { setProfile(false); setTab("eco"); }}>마이페이지로 이동 <ChevronRight size={16} /></button></div></Modal>}</div>;
