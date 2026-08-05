@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { KeyRound, LockKeyhole, Medal, UserRound, X } from "lucide-react";
-import { createUserWithEmailAndPassword, deleteUser, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, GoogleAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
 import { firebaseAuth } from "./firebase";
 
 type User = { email: string; name: string; password: string; points: number };
@@ -27,6 +27,7 @@ export default function AccountWidget() {
     bar.append(logout, withdraw);
   }, [user]);
   useEffect(() => { document.querySelectorAll<HTMLElement>(".ranking-list > div").forEach((row, index) => { row.style.display = index < 10 ? "" : "none"; }); }, [open, user]);
+  useEffect(() => { if (open !== "login") return; const form = document.querySelector(".account-form"); if (!form || form.querySelector(".google-login-btn")) return; const divider = document.createElement("div"); divider.className = "social-divider"; divider.textContent = "또는"; const google = document.createElement("button"); google.type = "button"; google.className = "google-login-btn"; google.textContent = "Google 계정으로 로그인"; google.onclick = async () => { try { await signInWithPopup(firebaseAuth, new GoogleAuthProvider()); setOpen(null); } catch { setMessage("Google 로그인에 실패했습니다. 다시 시도해주세요."); } }; form.append(divider, google); }, [open]);
   const close = () => { setOpen(null); setMessage(""); setEmail(""); setPassword(""); setName(""); };
   const submit = async (e: FormEvent) => { e.preventDefault();
     try {
