@@ -77,8 +77,9 @@ const challenges = [
 function ChallengeCard({ challenge, joined, onJoin }: { challenge: typeof challenges[number]; joined: boolean; onJoin: (title: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [verifying, setVerifying] = useState(false);
+  const [verifiedCount, setVerifiedCount] = useState(() => { if (typeof window === "undefined") return 0; return Number(window.localStorage.getItem(`ocean-guide-challenge-${challenge.title}`) || 0); });
   const [message, setMessage] = useState("");
-  const award = () => { awardEcoPoints(challenge.point); setMessage(`인증 성공! ${challenge.point}P가 적립되었습니다.`); setVerifying(false); };
+  const completeVerification = () => { const next = Math.min(challenge.total, verifiedCount + 1); setVerifiedCount(next); window.localStorage.setItem(`ocean-guide-challenge-${challenge.title}`, String(next)); if (next >= challenge.total) { awardEcoPoints(challenge.point); setMessage(`목표 달성! ${challenge.point}P가 적립되었습니다.`); } else { setMessage(`${next}/${challenge.total}회 인증 완료 · 목표 달성 후 ${challenge.point}P 지급`); } setVerifying(false); };
   const verifyActivity = async () => {
     setVerifying(true); setMessage("");
     if (challenge.title.includes("쓰레기")) {
@@ -88,7 +89,7 @@ function ChallengeCard({ challenge, joined, onJoin }: { challenge: typeof challe
       try { const steps = await health.getSteps(); if (steps < 3000) { setMessage("오늘 3,000걸음 이상이 필요합니다."); setVerifying(false); return; } } catch { setMessage("건강 정보 접근이 거부되었습니다."); setVerifying(false); return; }
     }
     if (!navigator.geolocation) { setMessage("이 브라우저에서는 위치 인증을 지원하지 않습니다."); setVerifying(false); return; }
-    navigator.geolocation.getCurrentPosition(() => award(), () => { setMessage("위치 권한을 허용해야 인증할 수 있습니다."); setVerifying(false); }, { enableHighAccuracy: true, timeout: 10000 });
+    navigator.geolocation.getCurrentPosition(() => completeVerification(), () => { setMessage("위치 권한을 허용해야 인증할 수 있습니다."); setVerifying(false); }, { enableHighAccuracy: true, timeout: 10000 });
   };
   const verifyPhoto = (file?: File) => {
     if (!file) return;
@@ -96,10 +97,10 @@ function ChallengeCard({ challenge, joined, onJoin }: { challenge: typeof challe
     window.setTimeout(() => {
       const name = file.name.toLowerCase();
       const looksLikeActivity = /(beach|sea|trash|plastic|쓰레기|해변|바다|플로깅)/i.test(name) || file.type.startsWith("image/");
-      if (looksLikeActivity) award(); else { setMessage("사진에서 활동 장소를 확인하지 못했습니다. 해변 활동 사진을 올려주세요."); setVerifying(false); }
+      if (looksLikeActivity) completeVerification(); else { setMessage("사진에서 활동 장소를 확인하지 못했습니다. 해변 활동 사진을 올려주세요."); setVerifying(false); }
     }, 1100);
   };
-  return <article className={`challenge ${challenge.color}`}><div className="challenge-icon">{challenge.emoji}</div><div className="challenge-copy"><span>{challenge.progress === challenge.total ? "완료" : "진행 중"}</span><h3>{challenge.title}</h3><p>{challenge.desc}</p><div className="challenge-progress"><i style={{ width: `${challenge.progress / challenge.total * 100}%` }} /></div><small><b>{challenge.progress}</b> / {challenge.total} {challenge.total === 100 ? "명 참여" : "회"}</small></div><div className="challenge-action"><b>+{challenge.point}P</b>{joined ? <><button className="joined"><Check size={15} /> 참여 중</button><button type="button" className="verify-btn" onClick={() => challenge.title.includes("사진") ? inputRef.current?.click() : void verifyActivity()} disabled={verifying}>{verifying ? "확인 중…" : "인증하기"}</button><input ref={inputRef} type="file" accept="image/*" hidden onChange={(event) => verifyPhoto(event.target.files?.[0])} /></> : <button onClick={() => onJoin(challenge.title)}>참여하기</button>}{message && <small className="challenge-message">{message}</small>}</div></article>;
+  return <article className={`challenge ${challenge.color}`}><div className="challenge-icon">{challenge.emoji}</div><div className="challenge-copy"><span>{verifiedCount >= challenge.total ? "완료" : "진행 중"}</span><h3>{challenge.title}</h3><p>{challenge.desc}</p><div className="challenge-progress"><i style={{ width: `${verifiedCount / challenge.total * 100}%` }} /></div><small><b>{verifiedCount}</b> / {challenge.total} {challenge.total === 100 ? "명 참여" : "회"}</small></div><div className="challenge-action"><b>+{challenge.point}P</b>{joined ? <><button className="joined"><Check size={15} /> 참여 중</button><button type="button" className="verify-btn" onClick={() => challenge.title.includes("사진") ? inputRef.current?.click() : void verifyActivity()} disabled={verifying || verifiedCount >= challenge.total}>{verifiedCount >= challenge.total ? "달성 완료" : verifying ? "확인 중…" : "인증하기"}</button><input ref={inputRef} type="file" accept="image/*" hidden onChange={(event) => verifyPhoto(event.target.files?.[0])} /></> : <button onClick={() => onJoin(challenge.title)}>참여하기</button>}{message && <small className="challenge-message">{message}</small>}</div></article>;
 }
 
 function Logo() {
