@@ -88,6 +88,9 @@ function PageTitle({ eyebrow, title, desc }: { eyebrow: string; title: string; d
 
 function BeachView({ openMap }: { openMap: () => void }) {
   const [query, setQuery] = useState(""); const [filter, setFilter] = useState<"전체" | Safety>("전체"); const [selected, setSelected] = useState(0);
+  const [kmaTemp, setKmaTemp] = useState<string | null>(null);
+  useEffect(() => { const key = import.meta.env.VITE_KMA_SERVICE_KEY as string | undefined; if (!key) return; const now = new Date(); const date = now.toISOString().slice(0, 10).replaceAll("-", ""); fetch(`https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${encodeURIComponent(key)}&pageNo=1&numOfRows=100&dataType=JSON&base_date=${date}&base_time=0500&nx=98&ny=76`).then(r => r.json()).then(data => { const item = data?.response?.body?.items?.item?.find((x: { category: string }) => x.category === "TMP"); if (item) setKmaTemp(item.fcstValue); }).catch(() => undefined); }, []);
+  useEffect(() => { const pill = document.querySelector<HTMLElement>(".hero .live-pill"); if (!pill || pill.querySelector(".kma-source")) return; const source = document.createElement("a"); source.className = "kma-source"; source.href = "https://www.weather.go.kr/w/index.do"; source.target = "_blank"; source.rel = "noreferrer"; source.textContent = kmaTemp ? `기상청 현재 ${kmaTemp}℃` : "기상청 날씨누리 기준"; pill.appendChild(source); }, [kmaTemp]);
   const list = useMemo(() => beaches.filter(b => (filter === "전체" || b.safety === filter) && b.name.includes(query)), [filter, query]);
   const beach = beaches[selected];
   return <main className="content"><section className="hero"><div className="hero-copy"><div className="live-pill"><i /> 실시간 해양 안전 정보</div><h1>오늘, 어느 바다로<br />떠나볼까요?</h1><p>부산 7개 해수욕장의 안전 상태를 한눈에 확인하세요.</p><div className="hero-stats"><div><b>5</b><span>입수 가능</span></div><div><b>2</b><span>주의 필요</span></div><div><b>24.0°</b><span>평균 수온</span></div></div></div><div className="wave-art"><div className="sun-orb" /><Waves size={190} /><div className="float-card"><ShieldCheck size={18} /><span><b>현재 안전한 해변</b><strong>5곳</strong></span></div></div></section>
@@ -167,7 +170,7 @@ function OceanGuideBody() {
       picker.appendChild(input); profileModal.appendChild(picker);
     }
     const profileAvatar = document.querySelector<HTMLElement>(".profile-modal .big-avatar");
-    if (profileAvatar && profileUser?.name) { profileAvatar.childNodes[0].textContent = profileUser.photo ? "" : profileUser.name.charAt(0).toUpperCase(); profileAvatar.style.backgroundImage = profileUser.photo ? `url(${profileUser.photo})` : ""; profileAvatar.style.backgroundSize = profileUser.photo ? "cover" : ""; }
+    if (profileAvatar && profileUser?.name) { const profileLevel = Math.max(1, Math.floor((profileUser.points || 0) / 500) + 1); profileAvatar.childNodes[0].textContent = profileUser.photo ? "" : profileUser.name.charAt(0).toUpperCase(); profileAvatar.style.backgroundImage = profileUser.photo ? `url(${profileUser.photo})` : ""; profileAvatar.style.backgroundSize = profileUser.photo ? "cover" : ""; const levelTag = profileAvatar.querySelector("span"); if (levelTag) levelTag.textContent = `LV.${profileLevel}`; }
     const headerProfile = document.querySelector<HTMLElement>(".profile-btn span");
     if (headerProfile) headerProfile.textContent = profileUser?.name || "로그인이 필요합니다";
   }, [tab, profile]);
