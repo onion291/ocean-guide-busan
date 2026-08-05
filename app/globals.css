@@ -33,7 +33,7 @@
   .challenge-grid{grid-template-columns:1fr;max-width:860px}
   .parking-tip{min-height:220px}
 }
- .account-fab .logout-btn{color:#0b7fba}.account-fab .withdraw-btn{color:#d9485f}.login-required{min-height:300px;display:grid;place-items:center;text-align:center}.login-required .empty-state{padding:36px 18px}.login-required h2{margin:10px 0 6px;font-size:24px;color:#173b51}.login-required p{color:#718594;font-size:13px}
+ .account-fab .logout-btn{color:#0b7fba}.account-fab .withdraw-btn{color:#d9485f}.account-fab .nickname-btn{color:#168b64}.login-required{min-height:300px;display:grid;place-items:center;text-align:center}.login-required .empty-state{padding:36px 18px}.login-required h2{margin:10px 0 6px;font-size:24px;color:#173b51}.login-required p{color:#718594;font-size:13px}
 .account-fab .previous-login-btn{color:#0788c8;font-size:9px}
 .naver-map-link{display:inline-flex;align-items:center;margin-top:8px;color:#03a94d;font-size:9px;font-weight:800;text-decoration:none}.parking-main .naver-map-link{margin-top:5px}
 .profile-photo-picker{display:inline-flex;margin-top:12px;padding:9px 13px;border-radius:10px;background:#078bcc;color:#fff;font-size:10px;font-weight:800;cursor:pointer}
