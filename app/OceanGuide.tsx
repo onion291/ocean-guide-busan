@@ -16,7 +16,7 @@ import { firebaseAuth } from "./firebase";
 
 type Tab = "beach" | "map" | "report" | "tour" | "eco";
 type Safety = "안전" | "주의" | "위험";
-const levelFromPoints = (points: number) => { let level = 1; let required = 1000; let remaining = Math.max(0, points); while (remaining >= required) { remaining -= required; level += 1; required += 500; } return level; };
+const levelFromPoints = (points: number, carbon = 0) => { let level = 1; let required = 1000; let remaining = Math.max(0, points) + Math.floor(Math.max(0, carbon) / 10); while (remaining >= required) { remaining -= required; level += 1; required += 500; } return level; };
 
 const beaches = [
   { name: "해운대", area: "해운대구", safety: "주의" as Safety, desc: "파고가 다소 높아요", temp: 24.2, wave: 1.2, uv: 7, crowd: 82, jelly: "낮음", rip: "주의", trash: "양호", x: 64, y: 33 },
@@ -147,6 +147,7 @@ function TourView() {
 function EcoView() {
   const [joined, setJoined] = useState<string[]>([]); const [modal, setModal] = useState(false);
   const [auth, setAuth] = useState<{ email: string; name: string; password: string; points: number } | null>(null);
+  useEffect(() => { if (!auth) return; const button = document.querySelector<HTMLButtonElement>(".steps-btn"); const mission = document.querySelector<HTMLButtonElement>(".mission-btn"); if (button && !button.dataset.healthConsent) { const replacement = button.cloneNode(true) as HTMLButtonElement; replacement.textContent = "건강 정보 연결"; replacement.dataset.healthConsent = "true"; button.replaceWith(replacement); replacement.addEventListener("click", async () => { if (!window.confirm("걸음 수 건강 정보 접근에 동의하시겠어요? 건강 정보는 미션 계산에만 사용됩니다.")) return; const health = (navigator as Navigator & { health?: { getSteps?: () => Promise<number> } }).health; if (!health?.getSteps) { window.alert("현재 브라우저에서는 휴대폰 건강 정보 연동을 지원하지 않습니다. 모바일 앱 연동 후 사용할 수 있습니다."); return; } const steps = await health.getSteps(); localStorage.setItem("ocean-guide-steps", String(Math.max(0, Math.floor(steps)))); window.dispatchEvent(new Event("ocean-mission-verified")); window.alert("건강 정보에서 걸음 수를 가져왔습니다."); }); } if (mission && !mission.dataset.verifiedMission) { const replacement = mission.cloneNode(true) as HTMLButtonElement; replacement.dataset.verifiedMission = "true"; mission.replaceWith(replacement); replacement.addEventListener("click", () => { const steps = Number(localStorage.getItem("ocean-guide-steps") || 0); const visits = Number(localStorage.getItem("ocean-guide-visits") || 0); if (steps < 3000 || visits < 1) { window.alert("플로깅 인증을 위해 3,000걸음 이상과 위치 방문 인증이 모두 필요합니다."); return; } localStorage.setItem("ocean-guide-missions", String(Number(localStorage.getItem("ocean-guide-missions") || 0) + 1)); window.dispatchEvent(new Event("ocean-mission-verified")); window.alert("걸음 수와 위치가 확인되어 플로깅 인증이 완료되었습니다."); }); } }, [auth]);
   const [badgeTick, setBadgeTick] = useState(0);
   useEffect(() => { const refresh = () => setBadgeTick((v) => v + 1); window.addEventListener("ocean-mission-verified", refresh); return () => window.removeEventListener("ocean-mission-verified", refresh); }, []);
   const verifiedPhotos = Number(typeof window !== "undefined" ? localStorage.getItem("ocean-guide-verified-photos") || 0 : 0);

@@ -28,6 +28,14 @@ const places: Place[] = [
   { name: "광안리 해변축제 광장", type: "관광명소", lat: 35.1537, lon: 129.1184, detail: "드론쇼와 계절 행사가 열리는 광안리 중심 구역입니다.", popularity: "이번 주 행사" },
 ];
 
+const ecoPlaces: Place[] = [
+  { name: "해운대 해변 수거함 스테이션", type: "에코 스팟", lat: 35.1582, lon: 129.1601, detail: "해변 입구 분리배출 수거함과 플로깅 용품 대여 위치", popularity: "네이버 지도 검색" },
+  { name: "광안리 에코카페 거리", type: "에코 스팟", lat: 35.1538, lon: 129.1194, detail: "다회용컵 사용 매장이 모여 있는 친환경 카페 거리", popularity: "주말 인기" },
+  { name: "송정 플로깅 스테이션", type: "에코 스팟", lat: 35.1791, lon: 129.2004, detail: "플로깅 집게와 봉투를 받을 수 있는 해변 안내소", popularity: "방문 추천" },
+  { name: "다대포 해변 수거함", type: "에코 스팟", lat: 35.0469, lon: 128.9667, detail: "몰운대 산책로 인근 재활용 수거함", popularity: "네이버 지도 검색" },
+  { name: "송도 친환경 관광 안내소", type: "에코 스팟", lat: 35.0768, lon: 129.0182, detail: "해상케이블카 주변 친환경 관광·분리배출 안내", popularity: "방문 추천" },
+];
+
 export default function RealMapView() {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<any>(null);
@@ -61,7 +69,7 @@ function renderMarkers(L: any, map: any, filter: string, setSelected: (p: Place)
   markersRef.current.forEach((marker) => marker.remove());
   markersRef.current = [];
   const recentReports: Place[] = (() => { try { return (JSON.parse(localStorage.getItem("ocean-guide-reports") || "[]") as Array<{ type: string; place: string; lat: number; lon: number; time: string; reportKind?: string }>).filter((r) => Date.now() - new Date(r.time).getTime() <= 3 * 60 * 60 * 1000).map((r) => ({ name: `${r.reportKind || "제보"} · ${r.place}`, type: "제보", lat: r.lat, lon: r.lon, detail: `${r.type} 최근 제보 · 접수 후 3시간 이내`, popularity: "최근 3시간 제보" })); } catch { return []; } })();
-  [...places, ...recentReports].filter((p) => filter === "전체" || p.type === filter || (filter === "제보" && p.type === "제보")).forEach((place) => {
+  [...places, ...ecoPlaces, ...recentReports].filter((p) => filter === "전체" || p.type === filter || (filter === "제보" && p.type === "제보")).forEach((place) => {
     const color = place.type === "해수욕장" ? "#0ea5e9" : place.type === "관광명소" ? "#8b5cf6" : place.type === "주차장" ? "#334155" : place.type === "제보" ? "#ef4444" : "#16a34a";
     const icon = L.divIcon({ className: "custom-leaflet-marker", html: `<span style="background:${color}">${place.type === "해수욕장" ? "〰" : place.type === "주차장" ? "P" : place.type === "에코스팟" ? "♻" : place.type === "제보" ? "!" : "★"}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] });
     const liveLeft = place.left == null ? undefined : Math.max(0, place.left + Math.round(Math.sin(Date.now() / 30000 + place.lat) * 4));
