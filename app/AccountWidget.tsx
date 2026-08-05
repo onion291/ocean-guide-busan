@@ -29,7 +29,7 @@ export default function AccountWidget() {
     bar.querySelectorAll(".auth-action, .previous-login-btn").forEach((el) => el.remove());
     if (!user) { const last = localStorage.getItem("ocean-guide-last-email"); if (last) { const previous = document.createElement("button"); previous.className = "previous-login-btn"; previous.textContent = "이전 계정으로 로그인"; previous.onclick = () => { setEmail(last); setOpen("login"); }; bar.append(previous); } return; }
     const logout = document.createElement("button"); logout.className = "auth-action logout-btn"; logout.textContent = "로그아웃";
-    logout.onclick = async () => { localStorage.setItem("ocean-guide-last-email", user.email); await signOut(firebaseAuth); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
+    logout.onclick = async () => { if (!window.confirm("정말 로그아웃하시겠습니까?")) return; localStorage.setItem("ocean-guide-last-email", user.email); await signOut(firebaseAuth); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
     const withdraw = document.createElement("button"); withdraw.className = "auth-action withdraw-btn"; withdraw.textContent = "탈퇴";
     withdraw.onclick = async () => { if (!window.confirm("계정을 탈퇴하시겠습니까? 계정이 영구 삭제됩니다.")) return; if (firebaseAuth.currentUser) await deleteUser(firebaseAuth.currentUser); localStorage.removeItem("ocean-guide-user"); localStorage.removeItem("ocean-guide-last-email"); setOpen(null); window.dispatchEvent(new Event("ocean-auth-changed")); };
     bar.append(logout, withdraw);
