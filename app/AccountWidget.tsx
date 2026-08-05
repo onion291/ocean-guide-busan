@@ -14,7 +14,7 @@ export default function AccountWidget() {
   const [open, setOpen] = useState<"login" | "signup" | "reset" | "rank" | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [name, setName] = useState(""); const [message, setMessage] = useState("");
-  useEffect(() => onAuthStateChanged(firebaseAuth, (fbUser) => { if (!fbUser) { setUser(null); localStorage.removeItem("ocean-guide-user"); return; } const next = { email: fbUser.email || "", name: fbUser.displayName || fbUser.email?.split("@")[0] || "사용자", password: "", points: 0 }; setUser(next); localStorage.setItem("ocean-guide-user", JSON.stringify(next)); }), []);
+  useEffect(() => onAuthStateChanged(firebaseAuth, (fbUser) => { if (!fbUser) { setUser(null); localStorage.removeItem("ocean-guide-user"); return; } let saved: Partial<User> = {}; try { saved = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); } catch { saved = {}; } const next = { email: fbUser.email || "", name: fbUser.displayName || fbUser.email?.split("@")[0] || "사용자", password: "", points: saved.points || 0, photo: fbUser.photoURL || (saved as User & { photo?: string }).photo || "" }; setUser(next); localStorage.setItem("ocean-guide-user", JSON.stringify(next)); }), []);
   useEffect(() => { if (open === "login") setEmail(localStorage.getItem("ocean-guide-last-email") || ""); }, [open]);
   useEffect(() => {
     const bar = document.querySelector(".account-fab"); if (!bar) return;

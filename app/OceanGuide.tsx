@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import RealMapView from "./RealMapView";
 import AccountWidget from "./AccountWidget";
+import { updateProfile } from "firebase/auth";
+import { firebaseAuth } from "./firebase";
 
 type Tab = "beach" | "map" | "report" | "tour" | "eco";
 type Safety = "안전" | "주의" | "위험";
@@ -166,7 +168,7 @@ function OceanGuideBody() {
     if (profileModal && profileUser && !profileModal.querySelector(".profile-photo-picker")) {
       const picker = document.createElement("label"); picker.className = "profile-photo-picker"; picker.textContent = "프로필 사진 변경";
       const input = document.createElement("input"); input.type = "file"; input.accept = "image/*"; input.hidden = true;
-      input.onchange = () => { const file = input.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const current = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); current.photo = String(reader.result); localStorage.setItem("ocean-guide-user", JSON.stringify(current)); window.dispatchEvent(new Event("ocean-auth-changed")); }; reader.readAsDataURL(file); };
+      input.onchange = () => { const file = input.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = async () => { const photo = String(reader.result); const current = JSON.parse(localStorage.getItem("ocean-guide-user") || "{}"); current.photo = photo; localStorage.setItem("ocean-guide-user", JSON.stringify(current)); if (firebaseAuth.currentUser) { try { await updateProfile(firebaseAuth.currentUser, { photoURL: photo }); } catch { /* local profile cache remains available */ } } window.dispatchEvent(new Event("ocean-auth-changed")); }; reader.readAsDataURL(file); };
       picker.appendChild(input); profileModal.appendChild(picker);
     }
     const profileAvatar = document.querySelector<HTMLElement>(".profile-modal .big-avatar");
