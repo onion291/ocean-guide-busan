@@ -78,6 +78,7 @@ function Logo() {
 }
 
 function Header({ onProfile }: { onProfile: () => void }) {
+  useEffect(() => { const button = document.querySelector<HTMLElement>(".notification"); if (!button || button.dataset.bound) return; button.dataset.bound = "true"; const panel = document.createElement("div"); panel.className = "notification-panel"; panel.innerHTML = `<strong>새 알림</strong><button><b>🎯 미션 달성</b><span>걸음 수와 위치 인증으로 플로깅 미션을 완료해보세요.</span></button><a href="https://korean.visitkorea.or.kr/kfes/detail/fstvlDetail.do?fstvlCntntsId=97898552-1e73-46e2-bba5-ab4f5d0f8670" target="_blank" rel="noreferrer"><b>🌊 부산바다축제 일정</b><span>2026년 8월 7~13일, 다대포 해수욕장에서 열립니다.</span></a><a href="https://www.busan.go.kr/nbtnewsBU/1731816" target="_blank" rel="noreferrer"><b>🛟 해수욕장 안전관리 소식</b><span>부산시가 여름철 안전관리 체계를 점검했습니다.</span></a>`; button.parentElement?.appendChild(panel); button.addEventListener("click", () => panel.classList.toggle("open")); return () => panel.remove(); }, []);
   const [profileLabel, setProfileLabel] = useState("로그인이 필요합니다");
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => { const load = () => { const raw = localStorage.getItem("ocean-guide-user"); const user = raw ? JSON.parse(raw) : null; setProfileLabel(user?.name || "로그인이 필요합니다"); setProfilePhoto(user?.photo || ""); }; load(); window.addEventListener("ocean-auth-changed", load); return () => window.removeEventListener("ocean-auth-changed", load); }, []);
