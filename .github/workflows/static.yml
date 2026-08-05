@@ -45,8 +45,8 @@ jobs:
           sed -i -E 's#(href|src)="/#\1="/ocean-guide-busan/#g' dist/client/index.html
           sed -i 's#/ocean-guide-busan/assets/#__BASE_ASSETS__#g; s#/assets/#/ocean-guide-busan/assets/#g; s#__BASE_ASSETS__#/ocean-guide-busan/assets/#g' dist/client/index.html
           find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i 's#/ocean-guide-busan/assets/#__BASE_ASSETS__#g; s#/assets/#/ocean-guide-busan/assets/#g; s#"assets/#"/ocean-guide-busan/assets/#g; s#__BASE_ASSETS__#/ocean-guide-busan/assets/#g' {} +
-          sed -i -E 's#(\.js|\.css)("|\))#\1?v=3\2#g' dist/client/index.html
-          find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i -E 's#(\.js|\.css)("|\))#\1?v=3\2#g' {} +
+          sed -i -E 's#(\.js|\.css)("|\))#\1?v=4\2#g' dist/client/index.html
+          find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i -E 's#(\.js|\.css)("|\))#\1?v=4\2#g' {} +
           test -f dist/client/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5

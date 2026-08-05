@@ -28,7 +28,7 @@ export default function RealMapView() {
   const markersRef = useRef<any[]>([]);
   const [selected, setSelected] = useState<Place | null>(null);
   const [filter, setFilter] = useState("전체");
-  const [, setLiveTick] = useState(0);
+  const [liveTick, setLiveTick] = useState(0);
   useEffect(() => { const timer = window.setInterval(() => setLiveTick((v) => v + 1), 10000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
